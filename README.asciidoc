@@ -69,6 +69,13 @@ Known bugs. Fixes coming Soon(TM):
 * Doesn't currently support TAG_List or TAG_Byte_Arrays
 * No way to reference unnamed tags
 
+Copyright
+---------
+
+Norbert is copyright (C) 2012 DMBuce <dmbuce@gmail.com>
+and is licensed through the GNU General Public License, version 2 or later.
+
+
 /////
 vim: set syntax=asciidoc ts=4 sw=4 noet:
 /////
