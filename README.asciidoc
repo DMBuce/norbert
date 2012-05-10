@@ -36,11 +36,11 @@ View +level.dat+:
 
 Same, but use +level.dat+ from another directory:
 
-	$ norbert -f /path/to/level.dat
+	$ norbert -i /path/to/level.dat
 
 View +player.dat+:
 
-	$ norbert -f player.dat
+	$ norbert -i player.dat
 
 View +GameType+ tag in +level.dat+:
 
