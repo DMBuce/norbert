@@ -1,9 +1,9 @@
 norbert.py README
 =================
 
-**N**or**B**er**T** is a viewer/editor for the 
+**N**or**B**er**T** is a command line viewer/editor for the 
 http://web.archive.org/web/20110723210920/http://www.minecraft.net/docs/NBT.txt[NBT]
-format that minecraft saves its data it. It can be used to read or modify
+format that minecraft saves its data to. It can be used to read or modify
 level.dat or player.dat files, among other things.
 
 Requirements
@@ -27,19 +27,16 @@ WARNING: Do NOT use the `-o` option while a file is being used by Minecraft
 or another program. You could corrupt your save!
 
 	$ norbert --help           # get usage info
+
 	$ norbert                  # view level.dat
+
 	$ norbert -f level.dat     # same, but specify level.dat
+
 	$ norbert -f player.dat    # view player.dat
+
 	$ norbert Data.GameType    # view GameType tag in level.dat
+
 	$ norbert -o level.dat Data.GameType=1  # set game mode to survival
-
-Bugs
-----
-
-Known bugs. Fixes coming Soon(TM):
-
-* Doesn't currently support TAG_List or TAG_Byte_Arrays
-* No way to reference unnamed tags
 
 Limitations
 -----------
@@ -48,6 +45,14 @@ Norbert can't:
 
 * Create new tags
 * Change the data type of existing tags
+
+Bugs
+----
+
+Known bugs. Fixes coming Soon(TM):
+
+* Doesn't currently support TAG_List or TAG_Byte_Arrays
+* No way to reference unnamed tags
 
 /////
 vim: set syntax=asciidoc ts=4 sw=4 noet:
