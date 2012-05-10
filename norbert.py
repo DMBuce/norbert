@@ -51,6 +51,10 @@ def main():
                       dest="outfile",
                       default=None,
                       help="The file to write to. If not provided and there are arguments of the form <tag>=<value>, the file that would have been written will be printed to stdout.")
+    parser.add_option("-f", "--format",
+                      dest="format",
+                      default="human",
+                      help="Format to print output in. Valid values are \"human\" and \"nbt\". Default is \"human\""),
 
     (options, args) = parser.parse_args()
 
@@ -84,7 +88,7 @@ def norbert(nbtfile, options, args):
         if len(namevalue) == 1:
             # print the tag
             name = namevalue[0]
-            print_tag(nbtfile, name=name)
+            print_tag(nbtfile, name=name, format=options.format)
         else:
             # set the tag
             name = namevalue.pop(0)
@@ -99,7 +103,7 @@ def norbert(nbtfile, options, args):
                and has_changed == True:
                 # we won't be writing these changes,
                 # so just print them for viewing
-                print_tag(nbtfile, name=name)
+                print_tag(nbtfile, name=name, format=options.format)
 
     # if any attempts to change a tag failed,
     # make sure we don't try to write out the changes
@@ -112,7 +116,13 @@ def print_tag(nbtfile, name="", verbosity=1, format="human"):
     if tag is None:
         return
 
-    print(tag.pretty_tree())
+    if format == "nbt":
+        print(tag.pretty_tree())
+    elif format == "human":
+        print_tag_human(tag)
+    else:
+        err("Unknown format: " + format)
+        sys.exit(1)
 
 def get_tag(tag, name):
     if name != "":
@@ -169,6 +179,50 @@ def set_tag(nbtfile, value, name=""):
 # print a message to stderr
 def err(message):
     sys.stderr.write(message + '\n')
+
+def print_tag_human(tag, pre=""):
+    stack = []
+    tag.pre = pre
+    stack.append(tag)
+
+    cur = None
+
+    while len(stack) != 0:
+        cur = stack.pop()
+
+        # prevent infinite recursion
+        #if len(cur.pre) > 10:
+        #    return
+
+        if cur.value is None:
+
+            # reverse cur.tags so they're printed in the correct order
+            try:
+                cur.tags.reverse()
+            except TypeError as e:
+                pass
+
+            for i in cur.tags:
+                i.pre = cur.pre + "  "
+                stack.append(i)
+
+            # reverse cur.tags so they're back in the original order
+            try:
+                cur.tags.reverse()
+            except TypeError as e:
+                pass
+
+        print(_human_tag_name(cur))
+        
+
+def _human_tag_name(tag):
+    if tag.value is None:
+        return tag.pre + tag.name + ":" #+ str(tag)
+    else:
+        if tag.name is None:
+            return tag.pre + ": " + str(tag.value)
+        else:
+            return tag.pre + tag.name + ": " + str(tag.value)
 
 # dead code
 #
