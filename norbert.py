@@ -41,7 +41,7 @@ tag_types = {
 
 def main():
     usage = "%prog [option] [tag[=value]]"
-    desc  = "Edits or displays an NBT formatted file. "
+    desc  = "Edits or displays an NBT formatted file."
     parser = optparse.OptionParser(version=VERSION, usage=usage, description=desc)
     parser.add_option("-i", "--input-file",
                       dest="infile",
