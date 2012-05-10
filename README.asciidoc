@@ -34,9 +34,9 @@ View +level.dat+:
 
 	$ norbert
 
-Same, but explicitly specify +level.dat+:
+Same, but use +level.dat+ from another directory:
 
-	$ norbert -f level.dat
+	$ norbert -f /path/to/level.dat
 
 View +player.dat+:
 
