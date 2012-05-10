@@ -23,7 +23,7 @@ import optparse
 import sys
 from nbt import nbt
 
-VERSION = 0.1
+VERSION = 0.2
 
 tag_types = {
     nbt.TAG_END:        "TAG_End",
@@ -54,10 +54,12 @@ def main():
 
     (options, args) = parser.parse_args()
 
-    norbert(options, args)
+    # if no tags are given, print starting from the top-level tag
+    if len(args) == 0:
+        args.append("")
+        #print_tag(get_tag(nbtfile, None))
 
-def norbert(options, args):
-
+    # open file
     nbtfile = None
     try:
         nbtfile = nbt.NBTFile(options.infile)
@@ -65,97 +67,128 @@ def norbert(options, args):
         err("Could not open file: " + options.infile)
         return
 
-    write_file = False
+    # read and/or set tags
+    norbert(nbtfile, options, args)
 
-    if len(args) == 0:
-        print_tag(get_tag(nbtfile, None))
+    # write file if necessary
+    if options.needs_write is True \
+       and options.outfile is not None:
+            nbtfile.write_file(options.outfile)
+
+def norbert(nbtfile, options, args):
+    options.needs_write = False
+    change_attempts = []
 
     for arg in args:
         namevalue = arg.split('=')
         if len(namevalue) == 1:
-            print_tag(get_tag(nbtfile, namevalue[0]))
+            # print the tag
+            name = namevalue[0]
+            print_tag(nbtfile, name=name)
         else:
+            # set the tag
             name = namevalue.pop(0)
             value = '='.join(namevalue)
+            options.needs_write = True
 
-            tag = get_tag(nbtfile, name)
-            write_file = set_tag(tag, value)
+            has_changed = set_tag(nbtfile, value, name=name)
+            change_attempts.append(has_changed)
 
-    if write_file:
-        if options.outfile is None:
-            print_tag(nbtfile)
-        else:
-            nbtfile.write_file(options.outfile)
+            # if no output file given and tag successfully set,
+            if options.outfile is None \
+               and has_changed == True:
+                # we won't be writing these changes,
+                # so just print them for viewing
+                print_tag(nbtfile, name=name)
 
-def print_tag(tag, verbosity=1):
-    if not tag:
+    # if any attempts to change a tag failed,
+    # make sure we don't try to write out the changes
+    if False in change_attempts:
+        options.needs_write = False
+
+def print_tag(nbtfile, name="", verbosity=1, format="human"):
+    tag = get_tag(nbtfile, name)
+
+    if tag is None:
         return
 
     print(tag.pretty_tree())
 
 def get_tag(tag, name):
-    if name is not None and name != "":
+    if name != "":
         for i in name.split('.'):
             try:
                 tag = tag[i]
-            except KeyError as e:
+            except (KeyError, TypeError) as e:
                 err("Tag not found: " + name)
                 return None
 
     return tag
 
-def set_tag(tag, value):
+# sets the value of a tag
+#
+# returns True if the value is successfully changed,
+#         False otherwise
+def set_tag(nbtfile, value, name=""):
+    tag = get_tag(nbtfile, name)
+
     if tag is None:
         return False
 
-    if tag.id == nbt.TAG_BYTE:
-        # convert to integer
-        tag.value = int(value)
-    elif tag.id == nbt.TAG_SHORT:
-        # convert to integer
-        tag.value = int(value)
-    elif tag.id == nbt.TAG_INT:
-        # convert to integer
-        tag.value = int(value)
-    elif tag.id == nbt.TAG_LONG:
-        # convert to integer
-        tag.value = int(value)
-    elif tag.id == nbt.TAG_FLOAT:
-        # convert to float
-        tag.value = float(value)
-    elif tag.id == nbt.TAG_DOUBLE:
-        # convert to float
-        tag.value = float(value)
-    elif tag.id == nbt.TAG_STRING:
-        # no conversion needed
-        tag.value = value
-    else:
-        err("Writing for " + tag_types[tag.id] + " not implemented yet.")
+    try:
+        if tag.id == nbt.TAG_BYTE:
+            # convert to integer
+            tag.value = int(value)
+        elif tag.id == nbt.TAG_SHORT:
+            # convert to integer
+            tag.value = int(value)
+        elif tag.id == nbt.TAG_INT:
+            # convert to integer
+            tag.value = int(value)
+        elif tag.id == nbt.TAG_LONG:
+            # convert to integer
+            tag.value = int(value)
+        elif tag.id == nbt.TAG_FLOAT:
+            # convert to float
+            tag.value = float(value)
+        elif tag.id == nbt.TAG_DOUBLE:
+            # convert to float
+            tag.value = float(value)
+        elif tag.id == nbt.TAG_STRING:
+            # no conversion needed
+            tag.value = value
+        else:
+            err("Writing for " + tag_types[tag.id] + " not implemented.")
+            return False
+    except ValueError as e:
+        err("Couldn't convert " + value + " to " + tag_types[tag.id] + '.')
         return False
 
     return True
 
+# print a message to stderr
 def err(message):
-    #print(message, file=sys.stderr)
     sys.stderr.write(message + '\n')
 
-def printTree(tag, sp):
-	if tag.value is None:
-		
-		#print(sp + tag.name + ": " + str(tag))
-		print(sp + tag.tag_info())
-		for i in tag.tags:
-			printTree(i, sp + "  ")
-			#print(sp + tag.name + ": " + str(tag.value))
-	else:
-		print(sp + tag.tag_info())
-		#print(sp + tag.name + ": " + str(tag.value))
-
-def fmttag1(tag):
-    return tag.tag_info()
-
-def fmttag2(tag):
-    return tag.name + ": " + str(tag.value)
+# dead code
+#
+#def printTree(tag, sp):
+#	if tag.value is None:
+#		
+#		#print(sp + tag.name + ": " + str(tag))
+#		print(sp + tag.tag_info())
+#		for i in tag.tags:
+#			printTree(i, sp + "  ")
+#			#print(sp + tag.name + ": " + str(tag.value))
+#	else:
+#		print(sp + tag.tag_info())
+#		#print(sp + tag.name + ": " + str(tag.value))
+#
+#def fmttag1(tag):
+#    return tag.tag_info()
+#
+#def fmttag2(tag):
+#    return tag.name + ": " + str(tag.value)
 
 if __name__ == "__main__":
     main()
