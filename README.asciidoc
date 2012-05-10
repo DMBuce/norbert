@@ -1,6 +1,9 @@
 norbert.py README
 =================
 
+WARNING: This is new and probably unstable software.
+Expect breakages until this notice is removed.
+
 **N**or**B**er**T** is a command line viewer/editor for the 
 http://web.archive.org/web/20110723210920/http://www.minecraft.net/docs/NBT.txt[NBT]
 format that minecraft saves its data to. It can be used to read or modify
