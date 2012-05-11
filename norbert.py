@@ -24,7 +24,7 @@ import sys
 from nbt import nbt
 
 VERSION = 0.2
-MAXDEPTH = 5
+DEFAULT_MAXDEPTH = 5
 
 tag_types = {
     nbt.TAG_END:        "TAG_End",
@@ -55,14 +55,27 @@ def main():
     parser.add_option("-f", "--format",
                       dest="format",
                       default="human",
-                      help="Format to print output in. Valid values are \"human\" and \"nbt-txt\". Default is \"human\""),
+                      help="Format to print output in. Valid values are \"human\" and \"nbt-txt\". Default is \"human\".")
+    parser.add_option("-r", "--recursive",
+                      action="store_true",
+                      dest="recursive",
+                      default=False,
+                      help="Print tags recursively.")
+    parser.add_option("-d", "--depth",
+                      dest="maxdepth",
+                      type="int",
+                      default=DEFAULT_MAXDEPTH,
+                      help="When used with -r, set the maximum recursion depth. Default is " + str(DEFAULT_MAXDEPTH) + "."),
 
     (options, args) = parser.parse_args()
 
     # if no tags are given, print starting from the top-level tag
     if len(args) == 0:
         args.append("")
-        #print_tag(get_tag(nbtfile, None))
+
+    # if -r not specified, depth is 1
+    if not options.recursive:
+        options.maxdepth = 1
 
     # open file
     nbtfile = None
@@ -90,7 +103,7 @@ def norbert(nbtfile, options, args):
         if len(namevalue) == 1:
             # print the tag
             name = namevalue[0]
-            print_tag(nbtfile, name=name, format=options.format)
+            print_tag(nbtfile, name=name, format=options.format, maxdepth=options.maxdepth)
         else:
             # set the tag
             name = namevalue.pop(0)
@@ -105,14 +118,14 @@ def norbert(nbtfile, options, args):
                and has_changed == True:
                 # we won't be writing these changes,
                 # so just print them for viewing
-                print_tag(nbtfile, name=name, format=options.format)
+                print_tag(nbtfile, name=name, format=options.format, maxdepth=options.maxdepth)
 
     # if any attempts to change a tag failed,
     # make sure we don't try to write out the changes
     if False in change_attempts:
         options.needs_write = False
 
-def print_tag(nbtfile, name="", format="human"):
+def print_tag(nbtfile, name="", format="human", maxdepth=DEFAULT_MAXDEPTH):
     tag = get_tag(nbtfile, name)
 
     if tag is None:
@@ -121,7 +134,7 @@ def print_tag(nbtfile, name="", format="human"):
     if format == "nbt-txt":
         print(tag.pretty_tree())
     elif format == "human":
-        print_tag_human(tag)
+        print_tag_human(tag, maxdepth=maxdepth)
     else:
         err("Unknown format: " + format)
         sys.exit(1)
@@ -207,7 +220,7 @@ def nothing(tag, depth=None):
 #   in_action:     in-order action (this doesn't work properly afaict)
 #   post_action:   postorder action
 #   maxdepth:      maximum depth level
-def traverse_subtags(tag, pre_action=nothing, in_action=nothing, post_action=nothing, maxdepth=MAXDEPTH):
+def traverse_subtags(tag, pre_action=nothing, in_action=nothing, post_action=nothing, maxdepth=DEFAULT_MAXDEPTH):
     stack = []
     tag.depth = 0
     stack.append(tag)
@@ -233,8 +246,8 @@ def traverse_subtags(tag, pre_action=nothing, in_action=nothing, post_action=not
 
         post_action(cur, cur.depth)
 
-def print_tag_human(tag, maxdepth=MAXDEPTH):
-    traverse_subtags(tag, post_action=_print_tag_human, maxdepth=MAXDEPTH)
+def print_tag_human(tag, maxdepth=DEFAULT_MAXDEPTH):
+    traverse_subtags(tag, post_action=_print_tag_human, maxdepth=maxdepth)
 
 def _print_tag_human(tag, depth):
     pre = '    ' * depth

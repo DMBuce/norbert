@@ -35,15 +35,15 @@ Get usage info:
 
 View +level.dat+:
 
-	$ norbert
+	$ norbert -r
 
 Same, but use +level.dat+ from another directory:
 
-	$ norbert -i /path/to/level.dat
+	$ norbert -r -i /path/to/level.dat
 
 View +player.dat+:
 
-	$ norbert -i player.dat
+	$ norbert -r -i player.dat
 
 View +GameType+ tag in +level.dat+:
 
