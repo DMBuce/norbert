@@ -66,8 +66,7 @@ Bugs
 
 Known bugs. Fixes coming Soon(TM):
 
-* Doesn't currently support TAG_List or TAG_Byte_Arrays
-* No way to reference unnamed tags
+* Doesn't currently support TAG_Byte_Arrays
 * Doesn't indicate failures with exit codes very well
 
 Copyright
