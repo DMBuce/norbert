@@ -24,6 +24,7 @@ import sys
 from nbt import nbt
 
 VERSION = 0.2
+MAXDEPTH = 5
 
 tag_types = {
     nbt.TAG_END:        "TAG_End",
@@ -180,10 +181,28 @@ def set_tag(nbtfile, value, name=""):
 def err(message):
     sys.stderr.write(message + '\n')
 
-def print_tag_human(tag, pre=""):
+# do nothing with a tag
+#
+# parameters:
+#   tag: the tag to do nothing with
+#   depth: the depth from the root ancestor tag
+def nothing(tag, depth=None):
+    pass
+
+# traverses tag and its subtags
+#
+# parameters
+# ----------
+#   tag:           the root tag to start traversing from
+#   pre_action:    preorder action
+#   in_action:     in-order action (this doesn't work properly afaict)
+#   post_action:   postorder action
+#   maxdepth:      maximum depth level
+def traverse_subtags(tag, pre_action=nothing, in_action=nothing, post_action=nothing, maxdepth=MAXDEPTH):
     stack = []
-    tag.pre = pre
+    tag.depth = 0
     stack.append(tag)
+    in_action(tag, tag.depth)
 
     cur = None
 
@@ -191,38 +210,32 @@ def print_tag_human(tag, pre=""):
         cur = stack.pop()
 
         # prevent infinite recursion
-        #if len(cur.pre) > 10:
-        #    return
+        if cur.depth >= maxdepth:
+            continue
+
+        pre_action(cur, cur.depth)
 
         if cur.value is None:
 
-            # reverse cur.tags so they're printed in the correct order
-            try:
-                cur.tags.reverse()
-            except TypeError as e:
-                pass
-
-            for i in cur.tags:
-                i.pre = cur.pre + "  "
+            for i in reversed(cur.tags):
+                i.depth = cur.depth + 1
                 stack.append(i)
+                in_action(cur, cur.depth)
 
-            # reverse cur.tags so they're back in the original order
-            try:
-                cur.tags.reverse()
-            except TypeError as e:
-                pass
+        post_action(cur, cur.depth)
 
-        print(_fmt_tag_human(cur))
-        
+def print_tag_human(tag, maxdepth=MAXDEPTH):
+    traverse_subtags(tag, post_action=_print_tag_human, maxdepth=MAXDEPTH)
+
+def _print_tag_human(tag, depth):
+    pre = '    ' * depth
+    print(pre + _fmt_tag_human(tag))
 
 def _fmt_tag_human(tag):
-    if tag.value is None:
-        return tag.pre + tag.name + ":" #+ str(tag)
+    if tag.name is None:
+        return ": " + tag.valuestr()
     else:
-        if tag.name is None:
-            return tag.pre + ": " + str(tag.value)
-        else:
-            return tag.pre + tag.name + ": " + str(tag.value)
+        return tag.name + ": " + tag.valuestr()
 
 # dead code
 #
