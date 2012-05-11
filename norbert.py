@@ -113,16 +113,13 @@ def norbert(nbtfile, options, args):
     change_attempts = []
 
     for arg in args:
-        namevalue = arg.split('=')
-        if len(namevalue) == 1:
+        name, value = split_arg(arg)
+        if value == None:
             # print the tag
-            name = namevalue[0]
             print_tag(nbtfile, name=name, format=options.format,
                       maxdepth=options.maxdepth)
         else:
             # set the tag
-            name = namevalue.pop(0)
-            value = '='.join(namevalue)
             options.needs_write = True
 
             has_changed = set_tag(nbtfile, value, name=name)
@@ -132,6 +129,15 @@ def norbert(nbtfile, options, args):
     # make sure we don't try to write out the changes
     if False in change_attempts:
         options.needs_write = False
+
+def split_arg(namevaluepair):
+    namevalue = namevaluepair.split('=')
+    name = namevalue.pop(0)
+    if len(namevalue) == 0:
+        value = None
+    else:
+        value = '='.join(namevalue)
+    return (name, value)
 
 def print_tag(nbtfile, name="", format="human", maxdepth=DEFAULT_MAXDEPTH):
     tag = get_tag(nbtfile, name)
