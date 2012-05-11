@@ -44,7 +44,7 @@ def main():
     usage = "%prog [option] [tag[=value]]"
     desc  = "Edits or displays an NBT formatted file."
     parser = optparse.OptionParser(version=VERSION, usage=usage, description=desc)
-    parser.add_option("-i", "--input-file",
+    parser.add_option("-f", "--input-file",
                       dest="infile",
                       default="level.dat",
                       help="The file to read. Default is level.dat.")
@@ -52,10 +52,10 @@ def main():
                       dest="outfile",
                       default=None,
                       help="The file to write to. If not provided and there are arguments of the form <tag>=<value>, the file that would have been written will be printed to stdout.")
-    parser.add_option("-f", "--format",
+    parser.add_option("-p", "--print-format",
                       dest="format",
                       default="human",
-                      help="Format to print output in. Valid values are \"human\" and \"nbt-txt\". Default is \"human\".")
+                      help="Format to print output in. Valid values are \"human\" and \"nbt-txt\". Default is \"human\".") #TODO: add "nbt", "json"
     parser.add_option("-r", "--recursive",
                       action="store_true",
                       dest="recursive",
@@ -66,6 +66,8 @@ def main():
                       type="int",
                       default=DEFAULT_MAXDEPTH,
                       help="When used with -r, set the maximum recursion depth. Default is " + str(DEFAULT_MAXDEPTH) + "."),
+    #parser.add_option("-i", "--input-format", # "nbt", "json", "human"
+    #parser.add_option("-c", "--create",
 
     (options, args) = parser.parse_args()
 
