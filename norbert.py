@@ -51,7 +51,7 @@ def main():
     parser.add_option("-o", "--output-file",
                       dest="outfile",
                       default=None,
-                      help="The file to write to. If not provided and there are arguments of the form <tag>=<value>, the file that would have been written will be printed to stdout.")
+                      help="The file to write to. Note: if not provided, any arguments of the form <tag>=<value> won't be written to disk.")
     parser.add_option("-p", "--print-format",
                       dest="format",
                       default="human",
@@ -114,13 +114,6 @@ def norbert(nbtfile, options, args):
 
             has_changed = set_tag(nbtfile, value, name=name)
             change_attempts.append(has_changed)
-
-            # if no output file given and tag successfully set,
-            if options.outfile is None \
-               and has_changed == True:
-                # we won't be writing these changes,
-                # so just print them for viewing
-                print_tag(nbtfile, name=name, format=options.format, maxdepth=options.maxdepth)
 
     # if any attempts to change a tag failed,
     # make sure we don't try to write out the changes
