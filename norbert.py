@@ -116,7 +116,7 @@ def norbert(nbtfile, options, args):
         name, value = split_arg(arg)
         if value == None:
             # print the tag
-            print_tag(nbtfile, name=name, format=options.format,
+            print_subtags(nbtfile, name=name, format=options.format,
                       maxdepth=options.maxdepth)
         else:
             # set the tag
@@ -138,20 +138,6 @@ def split_arg(namevaluepair):
     else:
         value = '='.join(namevalue)
     return (name, value)
-
-def print_tag(nbtfile, name="", format="human", maxdepth=DEFAULT_MAXDEPTH):
-    tag = get_tag(nbtfile, name)
-
-    if tag is None:
-        return
-
-    if format == "nbt-txt":
-        print(tag.pretty_tree())
-    elif format == "human":
-        print_tag_human(tag, maxdepth=maxdepth)
-    else:
-        err("Unknown format: " + format)
-        sys.exit(1)
 
 def get_tag(tag, name):
     if name != "":
@@ -260,6 +246,20 @@ def traverse_subtags(tag, pre_action=nothing, in_action=nothing,
                 in_action(cur, cur.depth)
 
         post_action(cur, cur.depth)
+
+def print_subtags(nbtfile, name="", format="human", maxdepth=DEFAULT_MAXDEPTH):
+    tag = get_tag(nbtfile, name)
+
+    if tag is None:
+        return
+
+    if format == "nbt-txt":
+        print(tag.pretty_tree())
+    elif format == "human":
+        print_tag_human(tag, maxdepth=maxdepth)
+    else:
+        err("Unknown format: " + format)
+        sys.exit(1)
 
 def print_tag_human(tag, maxdepth=DEFAULT_MAXDEPTH):
     traverse_subtags(tag, post_action=_print_tag_human, maxdepth=maxdepth)
