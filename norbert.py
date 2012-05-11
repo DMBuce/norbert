@@ -130,7 +130,15 @@ def get_tag(tag, name):
         for i in name.split('.'):
             try:
                 tag = tag[i]
-            except (KeyError, TypeError) as e:
+            except TypeError as e:
+                # see if tag is a list
+                try:
+                    i = int(i) - 1
+                    tag = tag[i]
+                except ValueError as e:
+                    err("Tag not found: " + name)
+                    return None
+            except KeyError as e:
                 err("Tag not found: " + name)
                 return None
 
