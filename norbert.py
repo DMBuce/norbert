@@ -111,7 +111,7 @@ def norbert(nbtfile, options, args):
     if False in change_attempts:
         options.needs_write = False
 
-def print_tag(nbtfile, name="", verbosity=1, format="human"):
+def print_tag(nbtfile, name="", format="human"):
     tag = get_tag(nbtfile, name)
 
     if tag is None:
