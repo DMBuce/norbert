@@ -42,8 +42,14 @@ tag_types = {
 
 def main():
     usage = "%prog [option] [tag[=value]]  [tag2[=value2] ... ]"
-    desc  = "Edits or displays an NBT formatted file. Nested <tag>s can be referenced by separating their names with a '.' character. List items are referenced by their place in the list. For example, \"Inventory.1.id\" refers to the block id of the first inventory item in a typical Minecraft player.dat file."
-    parser = optparse.OptionParser(version=VERSION, usage=usage, description=desc)
+    desc  = "Edits or displays an NBT formatted file. " \
+            "Nested <tag>s can be referenced " \
+            "by separating their names with a '.' character. " \
+            "List items are referenced by their place in the list. " \
+            "For example, \"Inventory.1.id\" refers to the block id of the " \
+            "first inventory item in a typical Minecraft player.dat file."
+    parser = optparse.OptionParser(version=VERSION, usage=usage,
+                                   description=desc)
     parser.add_option("-f", "--input-file",
                       dest="infile",
                       default="level.dat",
@@ -51,11 +57,15 @@ def main():
     parser.add_option("-o", "--output-file",
                       dest="outfile",
                       default=None,
-                      help="The file to write to. Note: if not provided, any arguments of the form <tag>=<value> won't be written to disk.")
+                      help="The file to write to. Note: if not provided, " \
+                           "any arguments of the form <tag>=<value> " \
+                           "won't be written to disk.")
     parser.add_option("-p", "--print-format",
                       dest="format",
                       default="human",
-                      help="Format to print output in. Valid values are \"human\" and \"nbt-txt\". Default is \"human\".") #TODO: add "nbt", "json"
+                      help="Format to print output in. " \
+                           "Valid values are \"human\" and \"nbt-txt\". " \
+                           "Default is \"human\".") #TODO: add "nbt", "json"
     parser.add_option("-r", "--recursive",
                       action="store_true",
                       dest="recursive",
@@ -65,7 +75,9 @@ def main():
                       dest="maxdepth",
                       type="int",
                       default=DEFAULT_MAXDEPTH,
-                      help="When used with -r, set the maximum recursion depth. Default is " + str(DEFAULT_MAXDEPTH) + "."),
+                      help="When used with -r, " \
+                           "set the maximum recursion depth. Default is " \
+                           + str(DEFAULT_MAXDEPTH) + "."),
     #parser.add_option("-i", "--input-format", # "nbt", "json", "human"
     #parser.add_option("-c", "--create",
 
@@ -105,7 +117,8 @@ def norbert(nbtfile, options, args):
         if len(namevalue) == 1:
             # print the tag
             name = namevalue[0]
-            print_tag(nbtfile, name=name, format=options.format, maxdepth=options.maxdepth)
+            print_tag(nbtfile, name=name, format=options.format,
+                      maxdepth=options.maxdepth)
         else:
             # set the tag
             name = namevalue.pop(0)
@@ -215,7 +228,8 @@ def nothing(tag, depth=None):
 #   in_action:     in-order action (this doesn't work properly afaict)
 #   post_action:   postorder action
 #   maxdepth:      maximum depth level
-def traverse_subtags(tag, pre_action=nothing, in_action=nothing, post_action=nothing, maxdepth=DEFAULT_MAXDEPTH):
+def traverse_subtags(tag, pre_action=nothing, in_action=nothing,
+                     post_action=nothing, maxdepth=DEFAULT_MAXDEPTH):
     stack = []
     tag.depth = 0
     stack.append(tag)
