@@ -68,6 +68,7 @@ def main():
     nbtfile = None
     try:
         nbtfile = nbt.NBTFile(options.infile)
+        nbtfile.name = nbtfile.filename
     except IOError as e:
         err("Could not open file: " + options.infile)
         return
