@@ -235,13 +235,6 @@ def err(message):
 def nothing(tag, depth=None):
     pass
 
-# does a preorder traversal of a tag and its subtags
-#
-# parameters
-# ----------
-#   tag:           the root tag to start traversing from
-#   pre_action:    preorder action
-#   maxdepth:      maximum depth level
 def traverse_subtags(tag, maxdepth=DEFAULT_MAXDEPTH, pre_action=nothing):
     stack = []
     tag.depth = 0
@@ -262,8 +255,63 @@ def traverse_subtags(tag, maxdepth=DEFAULT_MAXDEPTH, pre_action=nothing):
                 i.depth = cur.depth + 1
                 stack.append(i)
 
+# does a traversal of a tag and its subtags
+#
+# parameters
+# ----------
+#   tag:           the root tag to start traversing from
+#   pre_action:    preorder action
+#   post_action:   postorder action
+#   maxdepth:      maximum depth level
+def traverse_subtags2(tag, maxdepth=DEFAULT_MAXDEPTH,
+                     pre_action=nothing, post_action=nothing):
+    if tag == None:
+        return
+    
+    stack = [ tag ]
+    pre_action(tag, len(stack))
+    prev = None
+    
+    while len(stack) != 0:
+        # get cur from top of the stack
+        cur = stack[-1]
+
+        # if cur is the root or a child of prev
+        if len(stack) != maxdepth and \
+           ( prev == None or (prev.value is None and cur in prev.tags) ):
+            if cur.value is None:
+                # push cur's first child on stack
+                stack.append(cur.tags[0])
+                cur.tags[0].sibling = 1
+                # perform preorder action on newly added item
+                pre_action(stack[-1], len(stack))
+
+        # if prev is a child of cur
+        elif len(stack) != maxdepth and cur.value is None and prev in cur.tags:
+            # push cur's next child on stack
+            if prev.sibling is not None:
+                try:
+                    i = prev.sibling
+                    stack.append(cur.tags[i])
+                    cur.tags[i].sibling = i + 1
+                    # do preorder action on newly added item
+                    pre_action(stack[-1], len(stack))
+
+                except IndexError as e:
+                    pass
+
+        # cur and prev are identical
+        else:
+            # do postorder action on cur and pop it
+            post_action(cur, len(stack))
+            stack.pop()
+    
+        prev = cur
+
+
 def print_subtags(tag, maxdepth=DEFAULT_MAXDEPTH):
-    traverse_subtags(tag, pre_action=print_tag, maxdepth=maxdepth)
+    traverse_subtags2(tag, pre_action=print_tag, maxdepth=maxdepth)
+    #traverse_subtags(tag, pre_action=print_tag, maxdepth=maxdepth)
 
 def print_tag(tag, depth):
     print(format_tag(tag, print_tag.fmt, depth))
@@ -272,7 +320,7 @@ print_tag.fmt = DEFAULT_PRINTFORMAT
 
 def format_tag(tag, format, depth=0):
     formatter = formatters[format]
-    return '    ' * depth + formatter(tag)
+    return '    ' * (depth - 1) + formatter(tag)
 
 def format_tag_human(tag):
     if tag.name is None:
