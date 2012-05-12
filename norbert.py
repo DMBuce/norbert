@@ -235,24 +235,19 @@ def err(message):
 def nothing(tag, depth=None):
     pass
 
-# traverses tag and its subtags
+# does a preorder traversal of a tag and its subtags
 #
 # parameters
 # ----------
 #   tag:           the root tag to start traversing from
 #   pre_action:    preorder action
-#   in_action:     in-order action (this doesn't work properly afaict)
-#   post_action:   postorder action
 #   maxdepth:      maximum depth level
-def traverse_subtags(tag, pre_action=nothing, in_action=nothing,
-                     post_action=nothing, maxdepth=DEFAULT_MAXDEPTH):
+def traverse_subtags(tag, maxdepth=DEFAULT_MAXDEPTH, pre_action=nothing):
     stack = []
     tag.depth = 0
-    stack.append(tag)
-    in_action(tag, tag.depth)
-
     cur = None
 
+    stack.append(tag)
     while len(stack) != 0:
         cur = stack.pop()
 
@@ -263,16 +258,12 @@ def traverse_subtags(tag, pre_action=nothing, in_action=nothing,
         pre_action(cur, cur.depth)
 
         if cur.value is None:
-
             for i in reversed(cur.tags):
                 i.depth = cur.depth + 1
                 stack.append(i)
-                in_action(cur, cur.depth)
-
-        post_action(cur, cur.depth)
 
 def print_subtags(tag, maxdepth=DEFAULT_MAXDEPTH):
-    traverse_subtags(tag, post_action=print_tag, maxdepth=maxdepth)
+    traverse_subtags(tag, pre_action=print_tag, maxdepth=maxdepth)
 
 def print_tag(tag, depth):
     print(format_tag(tag, print_tag.fmt, depth))
