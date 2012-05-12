@@ -25,6 +25,7 @@ from nbt import nbt
 
 VERSION = 0.2
 DEFAULT_MAXDEPTH = 5
+DEFAULT_PRINTFORMAT = "human"
 
 tag_types = {
     nbt.TAG_END:        "TAG_End",
@@ -39,6 +40,8 @@ tag_types = {
     nbt.TAG_LIST:       "TAG_List",
     nbt.TAG_COMPOUND:   "TAG_Compound"
 }
+
+formatters = {}
 
 def main():
     usage = "%prog [option] [tag[=value]]  [tag2[=value2] ... ]"
@@ -62,10 +65,10 @@ def main():
                            "won't be written to disk.")
     parser.add_option("-p", "--print-format",
                       dest="format",
-                      default="human",
+                      default=DEFAULT_PRINTFORMAT,
                       help="Format to print output in. " \
                            "Valid values are \"human\" and \"nbt-txt\". " \
-                           "Default is \"human\".") #TODO: add "nbt", "json"
+                           "Default is \"" + DEFAULT_PRINTFORMAT + "\".") #TODO: add "nbt", "json"
     parser.add_option("-r", "--recursive",
                       action="store_true",
                       dest="recursive",
@@ -90,6 +93,13 @@ def main():
     # if -r not specified, depth is 1
     if not options.recursive:
         options.maxdepth = 1
+
+    # validate input format
+    if options.format not in formatters:
+        err("Unknown format: " + options.format)
+        return 2
+    else:
+        print_tag.fmt = options.format
 
     # open file
     nbtfile = None
@@ -247,32 +257,38 @@ def traverse_subtags(tag, pre_action=nothing, in_action=nothing,
 
         post_action(cur, cur.depth)
 
-def print_subtags(nbtfile, name="", format="human", maxdepth=DEFAULT_MAXDEPTH):
+def print_subtags(nbtfile, name="", format=DEFAULT_PRINTFORMAT, maxdepth=DEFAULT_MAXDEPTH):
     tag = get_tag(nbtfile, name)
 
     if tag is None:
         return
 
-    if format == "nbt-txt":
-        print(tag.pretty_tree())
-    elif format == "human":
-        print_tag_human(tag, maxdepth=maxdepth)
-    else:
-        err("Unknown format: " + format)
-        sys.exit(1)
+    traverse_subtags(tag, post_action=print_tag, maxdepth=maxdepth)
 
-def print_tag_human(tag, maxdepth=DEFAULT_MAXDEPTH):
-    traverse_subtags(tag, post_action=_print_tag_human, maxdepth=maxdepth)
+def print_tag(tag, depth):
+    print(format_tag(tag, print_tag.fmt, depth))
 
-def _print_tag_human(tag, depth):
-    pre = '    ' * depth
-    print(pre + _fmt_tag_human(tag))
+print_tag.fmt = DEFAULT_PRINTFORMAT
 
-def _fmt_tag_human(tag):
+def format_tag(tag, format, depth=0):
+    formatter = formatters[format]
+    return '    ' * depth + formatter(tag)
+
+def format_tag_human(tag):
     if tag.name is None:
         return ": " + tag.valuestr()
     else:
         return tag.name + ": " + tag.valuestr()
+
+formatters["human"] = format_tag_human
+
+def format_tag_nbt_txt(tag):
+    if tag.name is None:
+        return tag_types[tag.id] + ": " + tag.valuestr()
+    else:
+        return tag_types[tag.id] + "('" + tag.name + "'): " + tag.valuestr()
+
+formatters["nbt-txt"] = format_tag_nbt_txt
 
 # dead code
 #
