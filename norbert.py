@@ -283,7 +283,7 @@ def format_tag_human(tag):
 formatters["human"] = format_tag_human
 
 def format_tag_nbt_txt(tag):
-    if tag.name is None:
+    if tag.name is None or tag.name == "":
         return tag_types[tag.id] + ": " + tag.valuestr()
     else:
         return tag_types[tag.id] + "('" + tag.name + "'): " + tag.valuestr()
