@@ -27,6 +27,15 @@ VERSION = 0.2
 DEFAULT_MAXDEPTH = 5
 DEFAULT_PRINTFORMAT = "human"
 
+# errors
+GENERAL_ERROR = 1
+INVALID_OPTION = 2
+TAG_NOT_FOUND = 4
+TAG_NOT_IMPLEMENTED = 5
+TAG_CONVERSION_ERROR = 6
+
+formatters = {}
+
 tag_types = {
     nbt.TAG_END:        "TAG_End",
     nbt.TAG_BYTE:       "TAG_Byte",
@@ -40,8 +49,6 @@ tag_types = {
     nbt.TAG_LIST:       "TAG_List",
     nbt.TAG_COMPOUND:   "TAG_Compound"
 }
-
-formatters = {}
 
 def main():
     usage = "%prog [option] [tag[=value]]  [tag2[=value2] ... ]"
@@ -97,7 +104,7 @@ def main():
     # validate input format
     if options.format not in formatters:
         err("Unknown format: " + options.format)
-        return 2
+        return INVALID_OPTION
     else:
         print_tag.fmt = options.format
 
@@ -107,38 +114,51 @@ def main():
         nbtfile = nbt.NBTFile(options.infile)
         nbtfile.name = nbtfile.filename
     except IOError as e:
-        err("Could not open file: " + options.infile)
-        return
+        # oh god why
+        if e.strerror is None:
+            e.strerror = str(e)
+
+        if options.infile not in e.strerror:
+            err(e.strerror + ": '" + options.infile + "'")
+        else:
+            err(e.strerror)
+
+        if e.errno is None or e.errno == 0:
+            e.errno = GENERAL_ERROR
+
+        return e.errno
 
     # read and/or set tags
-    norbert(nbtfile, options, args)
+    retval = 0
+    for arg in args:
+        r = norbert(nbtfile, options, arg)
+        if r > retval:
+            retval = r
+
+    if retval != 0:
+        return retval
 
     # write file if necessary
-    if options.needs_write is True \
-       and options.outfile is not None:
+    if options.outfile is not None:
             nbtfile.write_file(options.outfile)
 
-def norbert(nbtfile, options, args):
-    options.needs_write = False
-    change_attempts = []
+    return 0
 
-    for arg in args:
-        name, value = split_arg(arg)
-        if value == None:
-            # print the tag
-            print_subtags(nbtfile, name=name, format=options.format,
-                      maxdepth=options.maxdepth)
-        else:
-            # set the tag
-            options.needs_write = True
+def norbert(nbtfile, options, arg):
+    name, value = split_arg(arg)
 
-            has_changed = set_tag(nbtfile, value, name=name)
-            change_attempts.append(has_changed)
+    tag = get_tag(nbtfile, name)
+    if tag is None:
+        err("Tag not found: " + name)
+        return TAG_NOT_FOUND
 
-    # if any attempts to change a tag failed,
-    # make sure we don't try to write out the changes
-    if False in change_attempts:
-        options.needs_write = False
+    if value == None:
+        # print the tag and its subtags
+        print_subtags(tag, maxdepth=options.maxdepth)
+        return 0
+    else:
+        # set the tag
+        return set_tag(tag, value)
 
 def split_arg(namevaluepair):
     namevalue = namevaluepair.split('=')
@@ -160,24 +180,18 @@ def get_tag(tag, name):
                     i = int(i) - 1
                     tag = tag[i]
                 except ValueError as e:
-                    err("Tag not found: " + name)
                     return None
             except KeyError as e:
-                err("Tag not found: " + name)
                 return None
 
     return tag
 
 # sets the value of a tag
 #
-# returns True if the value is successfully changed,
-#         False otherwise
-def set_tag(nbtfile, value, name=""):
-    tag = get_tag(nbtfile, name)
-
-    if tag is None:
-        return False
-
+# returns: 0 if the tag is successfully set,
+#          TAG_NOT_IMPLEMENTED if tag type not implemented,
+#          TAG_CONVERSION_ERROR if value couldn't be converted
+def set_tag(tag, value):
     try:
         if tag.id == nbt.TAG_BYTE:
             # convert to integer
@@ -202,12 +216,12 @@ def set_tag(nbtfile, value, name=""):
             tag.value = value
         else:
             err("Writing for " + tag_types[tag.id] + " not implemented.")
-            return False
+            return TAG_NOT_IMPLEMENTED
     except ValueError as e:
         err("Couldn't convert " + value + " to " + tag_types[tag.id] + '.')
-        return False
+        return TAG_CONVERSION_ERROR
 
-    return True
+    return 0
 
 # print a message to stderr
 def err(message):
@@ -257,12 +271,7 @@ def traverse_subtags(tag, pre_action=nothing, in_action=nothing,
 
         post_action(cur, cur.depth)
 
-def print_subtags(nbtfile, name="", format=DEFAULT_PRINTFORMAT, maxdepth=DEFAULT_MAXDEPTH):
-    tag = get_tag(nbtfile, name)
-
-    if tag is None:
-        return
-
+def print_subtags(tag, maxdepth=DEFAULT_MAXDEPTH):
     traverse_subtags(tag, post_action=print_tag, maxdepth=maxdepth)
 
 def print_tag(tag, depth):
@@ -311,5 +320,5 @@ formatters["nbt-txt"] = format_tag_nbt_txt
 #    return tag.name + ": " + str(tag.value)
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
 
