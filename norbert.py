@@ -241,26 +241,6 @@ def err(message):
 def nothing(tag, depth=None):
     pass
 
-def traverse_subtags(tag, maxdepth=DEFAULT_MAXDEPTH, pre_action=nothing):
-    stack = []
-    tag.depth = 0
-    cur = None
-
-    stack.append(tag)
-    while len(stack) != 0:
-        cur = stack.pop()
-
-        # prevent infinite recursion
-        if cur.depth >= maxdepth:
-            continue
-
-        pre_action(cur, cur.depth)
-
-        if cur.id in complex_tag_types:
-            for i in reversed(cur.tags):
-                i.depth = cur.depth + 1
-                stack.append(i)
-
 def is_parent_of(parent, child):
     return parent.id in complex_tag_types and child in parent.tags
 
@@ -272,7 +252,7 @@ def is_parent_of(parent, child):
 #   pre_action:    preorder action
 #   post_action:   postorder action
 #   maxdepth:      maximum depth level
-def traverse_subtags2(tag, maxdepth=DEFAULT_MAXDEPTH,
+def traverse_subtags(tag, maxdepth=DEFAULT_MAXDEPTH,
                      pre_action=nothing, post_action=nothing):
     # stack: a list of (tag, int) pairs
     # cur:   the current tag
@@ -332,8 +312,7 @@ def push_child(stack, parent, i):
         stack.append( (parent.tags[i], None) )
 
 def print_subtags(tag, maxdepth=DEFAULT_MAXDEPTH):
-    traverse_subtags2(tag, pre_action=print_tag, maxdepth=maxdepth)
-    #traverse_subtags(tag, pre_action=print_tag, maxdepth=maxdepth)
+    traverse_subtags(tag, pre_action=print_tag, maxdepth=maxdepth)
 
 def print_tag(tag, depth):
     print(format_tag(tag, print_tag.fmt, depth))
@@ -359,26 +338,6 @@ def format_tag_nbt_txt(tag):
         return tag_types[tag.id] + "('" + tag.name + "'): " + tag.valuestr()
 
 formatters["nbt-txt"] = format_tag_nbt_txt
-
-# dead code
-#
-#def printTree(tag, sp):
-#	if tag.value is None:
-#		
-#		#print(sp + tag.name + ": " + str(tag))
-#		print(sp + tag.tag_info())
-#		for i in tag.tags:
-#			printTree(i, sp + "  ")
-#			#print(sp + tag.name + ": " + str(tag.value))
-#	else:
-#		print(sp + tag.tag_info())
-#		#print(sp + tag.name + ": " + str(tag.value))
-#
-#def fmttag1(tag):
-#    return tag.tag_info()
-#
-#def fmttag2(tag):
-#    return tag.name + ": " + str(tag.value)
 
 if __name__ == "__main__":
     sys.exit(main())
