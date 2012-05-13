@@ -80,7 +80,8 @@ def main():
                       dest="format",
                       default=DEFAULT_PRINTFORMAT,
                       help="Format to print output in. " \
-                           "Valid values are \"human\" and \"nbt-txt\". " \
+                           "Valid values are \"human\", \"nbt-txt\" " \
+                           "and \"norbert\". " \
                            "Default is \"" + DEFAULT_PRINTFORMAT + "\".") #TODO: add "nbt", "json"
     parser.add_option("-r", "--recursive",
                       action="store_true",
@@ -94,11 +95,8 @@ def main():
                       help="When used with -r, " \
                            "set the maximum recursion depth. Default is " \
                            + str(DEFAULT_MAXDEPTH) + "."),
-    #parser.add_option("-i", "--input-format", # "nbt", "json", "human"
+    #parser.add_option("-i", "--input-format", # "nbt", "json", "norbert"
     #parser.add_option("-c", "--create",
-
-# -p norbert, json, nbt, human, nbt-txt
-# -i norbert, json, nbt
 
     (options, args) = parser.parse_args()
 
@@ -374,6 +372,32 @@ def nbt_txt_print_post(tag):
 
 formatters["nbt-txt"] = \
     (nbt_txt_print_init, nbt_txt_print_pre, nbt_txt_print_post, nothing)
+
+
+
+def norbert_print_init(tag):
+    try:
+        filename = tag.filename # throws error if tag isn't an NBTFile
+        tag.fullname = ""
+    except AttributeError as e:
+        tag.fullname = tag.name
+
+def norbert_print_pre(tag):
+    if tag.id in complex_tag_types:
+        for i in range(len(tag.tags)):
+            child = tag.tags[i]
+            if tag.fullname == "":
+                child.fullname = child.name
+            elif tag.id == nbt.TAG_COMPOUND:
+                child.fullname = tag.fullname + '.' + child.name
+            elif tag.id == nbt.TAG_LIST:
+                child.fullname = tag.fullname + '[' + str(i) + ']'
+    else:
+        value = tag_types[tag.id] + '(' + tag.valuestr() + ')'
+        print(tag.fullname + ' = ' + value)
+
+formatters["norbert"] = \
+    (norbert_print_init, norbert_print_pre, nothing, nothing)
 
 
 
