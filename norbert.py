@@ -103,8 +103,6 @@ def main():
     if options.format not in formatters:
         err("Unknown format: " + options.format)
         return INVALID_OPTION
-    else:
-        print_subtags.format = options.format
 
     # open file
     nbtfile = None
@@ -151,7 +149,7 @@ def norbert(nbtfile, options, arg):
 
     if value == None:
         # print the tag and its subtags
-        print_subtags(tag, maxdepth=options.maxdepth)
+        print_subtags(tag, maxdepth=options.maxdepth, format=options.format)
         return 0
     else:
         # set the tag
@@ -302,15 +300,13 @@ def push_child(stack, parent, i):
     else:
         stack.append( (parent.tags[i], None) )
 
-def print_subtags(tag, maxdepth=DEFAULT_MAXDEPTH):
+def print_subtags(tag, maxdepth=DEFAULT_MAXDEPTH, format=DEFAULT_PRINTFORMAT):
     (print_tag_init, print_tag_pre, print_tag_post, print_tag_done) = \
-        formatters[print_subtags.format]
+        formatters[format]
     print_tag_init(tag)
     traverse_subtags(tag, maxdepth=maxdepth,
                      pre_action=print_tag_pre, post_action=print_tag_post)
     print_tag_done(tag)
-
-print_subtags.format = DEFAULT_PRINTFORMAT
 
 
 
