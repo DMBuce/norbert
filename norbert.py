@@ -50,6 +50,12 @@ tag_types = {
     nbt.TAG_COMPOUND:   "TAG_Compound"
 }
 
+complex_tag_types = [
+    nbt.TAG_BYTE_ARRAY,
+    nbt.TAG_LIST,
+    nbt.TAG_COMPOUND
+]
+
 def main():
     usage = "%prog [option] [tag[=value]]  [tag2[=value2] ... ]"
     desc  = "Edits or displays an NBT formatted file. " \
@@ -250,10 +256,13 @@ def traverse_subtags(tag, maxdepth=DEFAULT_MAXDEPTH, pre_action=nothing):
 
         pre_action(cur, cur.depth)
 
-        if cur.value is None:
+        if cur.id in complex_tag_types:
             for i in reversed(cur.tags):
                 i.depth = cur.depth + 1
                 stack.append(i)
+
+def is_parent_of(parent, child):
+    return parent.id in complex_tag_types and child in parent.tags
 
 # does a traversal of a tag and its subtags
 #
@@ -290,8 +299,8 @@ def traverse_subtags2(tag, maxdepth=DEFAULT_MAXDEPTH,
 
         # if cur is the root or a child of prev
         if len(stack) != maxdepth and \
-           ( prev == None or (prev.value is None and cur in prev.tags) ):
-            if cur.value is None:
+           ( prev == None or is_parent_of(prev, cur) ):
+            if cur.id in complex_tag_types:
                 # push cur's first child on stack
                 push_child(stack, cur, 0)
 
@@ -299,7 +308,7 @@ def traverse_subtags2(tag, maxdepth=DEFAULT_MAXDEPTH,
                 pre_action(stack[-1][0], len(stack))
 
         # if prev is a child of cur
-        elif len(stack) != maxdepth and cur.value is None and prev in cur.tags:
+        elif len(stack) != maxdepth and is_parent_of(cur, prev):
             # push cur's next child (prev's sibling) on stack
             if p is not None:
                 push_child(stack, cur, p)
@@ -309,12 +318,13 @@ def traverse_subtags2(tag, maxdepth=DEFAULT_MAXDEPTH,
 
         # cur and prev are identical
         else:
-            # do postorder action on cur and pop it
+            # perform postorder action on cur and pop it
             post_action(cur, len(stack))
             stack.pop()
     
         (prev, p) = (cur, c)
 
+# pushes a child and the index of the next child (if any) on the stack
 def push_child(stack, parent, i):
     if len(parent.tags) > i + 1:
         stack.append( (parent.tags[i], i + 1) )
