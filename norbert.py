@@ -164,22 +164,32 @@ def split_arg(namevaluepair):
         value = '='.join(namevalue)
     return (name, value)
 
-def get_tag(tag, name):
-    if name != "":
-        for i in name.split('.'):
+def get_tag(tag, fullname):
+    if fullname == "":
+        return tag
+
+    try:
+        for i in fullname.split('.'):
             try:
                 tag = tag[i]
             except TypeError as e:
-                # see if tag is a list
-                try:
-                    i = int(i) - 1
-                    tag = tag[i]
-                except ValueError as e:
-                    return None
+                tag = tag[int(i)]
             except KeyError as e:
-                return None
+                (i, indexes) = split_name(i)
+                tag = tag[i]
+                for j in indexes:
+                    tag = tag[j]
+    except (KeyError, ValueError, TypeError) as e:
+        return None
 
     return tag
+
+def split_name(nameindexlist):
+    nameindex = nameindexlist.split('[')
+    name = nameindex.pop(0)
+    indexes = [ int(i.rstrip(']')) for i in nameindex ]
+
+    return (name, indexes)
 
 # sets the value of a tag
 #
