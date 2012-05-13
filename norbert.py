@@ -97,6 +97,9 @@ def main():
     #parser.add_option("-i", "--input-format", # "nbt", "json", "human"
     #parser.add_option("-c", "--create",
 
+# -p norbert, json, nbt, human, nbt-txt
+# -i norbert, json, nbt
+
     (options, args) = parser.parse_args()
 
     # if no tags are given, print starting from the top-level tag
@@ -112,13 +115,12 @@ def main():
         err("Unknown format: " + options.format)
         return INVALID_OPTION
     else:
-        print_tag.fmt = options.format
+        print_subtags.format = options.format
 
     # open file
     nbtfile = None
     try:
         nbtfile = nbt.NBTFile(options.infile)
-        nbtfile.name = nbtfile.filename
     except IOError as e:
         # oh god why
         if e.strerror is None:
@@ -312,32 +314,68 @@ def push_child(stack, parent, i):
         stack.append( (parent.tags[i], None) )
 
 def print_subtags(tag, maxdepth=DEFAULT_MAXDEPTH):
-    traverse_subtags(tag, pre_action=print_tag, maxdepth=maxdepth)
+    (print_tag_init, print_tag_pre, print_tag_post, print_tag_done) = \
+        formatters[print_subtags.format]
+    print_tag_init(tag)
+    traverse_subtags(tag, maxdepth=maxdepth,
+                     pre_action=print_tag_pre, post_action=print_tag_post)
+    print_tag_done(tag)
 
-def print_tag(tag, depth):
-    print(format_tag(tag, print_tag.fmt, depth))
+print_subtags.format = DEFAULT_PRINTFORMAT
 
-print_tag.fmt = DEFAULT_PRINTFORMAT
 
-def format_tag(tag, format, depth=0):
-    formatter = formatters[format]
-    return '    ' * (depth - 1) + formatter(tag)
 
-def format_tag_human(tag):
+def human_print_init(tag):
+    tag.depth = 0
+
+def human_print_pre(tag, depth):
+    if tag.id in complex_tag_types:
+        for child in tag.tags:
+            child.depth = tag.depth + 1
+
     if tag.name is None:
-        return ": " + tag.valuestr()
+        print('    ' * tag.depth + ": " + tag.valuestr())
     else:
-        return tag.name + ": " + tag.valuestr()
+        print('    ' * tag.depth + tag.name + ": " + tag.valuestr())
 
-formatters["human"] = format_tag_human
+formatters["human"] = (human_print_init, human_print_pre, nothing, nothing)
 
-def format_tag_nbt_txt(tag):
+
+
+def nbt_txt_print_init(tag):
+    try:
+        filename = tag.filename # throws error if tag isn't an NBTFile
+        tag.depth = -1
+    except AttributeError as e:
+        tag.depth = 0
+
+def nbt_txt_print_pre(tag, depth):
+    if tag.id in complex_tag_types:
+        for child in tag.tags:
+            child.depth = tag.depth + 1
+
+    if tag.depth < 0:
+        return
+
     if tag.name is None or tag.name == "":
-        return tag_types[tag.id] + ": " + tag.valuestr()
+        print('   ' * tag.depth + tag_types[tag.id] + ": " + tag.valuestr())
     else:
-        return tag_types[tag.id] + "('" + tag.name + "'): " + tag.valuestr()
+        print('   ' * tag.depth + tag_types[tag.id] + "(\"" + tag.name + "\"): " + tag.valuestr())
 
-formatters["nbt-txt"] = format_tag_nbt_txt
+    if tag.id in complex_tag_types:
+        print('   ' * tag.depth + '{')
+
+def nbt_txt_print_post(tag, depth):
+    try:
+        filename = tag.filename # throws error if tag isn't an NBTFile
+    except AttributeError as e:
+        if tag.id in complex_tag_types:
+            print('   ' * tag.depth + '}')
+
+formatters["nbt-txt"] = \
+    (nbt_txt_print_init, nbt_txt_print_pre, nbt_txt_print_post, nothing)
+
+
 
 if __name__ == "__main__":
     sys.exit(main())
