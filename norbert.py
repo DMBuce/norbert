@@ -83,11 +83,6 @@ def main():
                            "Valid values are \"human\", \"nbt-txt\" " \
                            "and \"norbert\". " \
                            "Default is \"" + DEFAULT_PRINTFORMAT + "\".") #TODO: add "nbt", "json"
-    parser.add_option("-r", "--recursive",
-                      action="store_true",
-                      dest="recursive",
-                      default=False,
-                      help="Print tags recursively.")
     parser.add_option("-d", "--depth",
                       dest="maxdepth",
                       type="int",
@@ -103,10 +98,6 @@ def main():
     # if no tags are given, print starting from the top-level tag
     if len(args) == 0:
         args.append("")
-
-    # if -r not specified, depth is 1
-    if not options.recursive:
-        options.maxdepth = 1
 
     # validate input format
     if options.format not in formatters:
