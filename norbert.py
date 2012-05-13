@@ -272,7 +272,7 @@ def traverse_subtags(tag, maxdepth=DEFAULT_MAXDEPTH,
         return
     
     stack = [ (tag, None) ]
-    pre_action(tag, len(stack))
+    pre_action(tag)
     (prev, p) = (None, None)
     
     while len(stack) != 0:
@@ -287,7 +287,7 @@ def traverse_subtags(tag, maxdepth=DEFAULT_MAXDEPTH,
                 push_child(stack, cur, 0)
 
                 # perform preorder action on newly added item
-                pre_action(stack[-1][0], len(stack))
+                pre_action(stack[-1][0])
 
         # if prev is a child of cur
         elif len(stack) != maxdepth and is_parent_of(cur, prev):
@@ -296,12 +296,12 @@ def traverse_subtags(tag, maxdepth=DEFAULT_MAXDEPTH,
                 push_child(stack, cur, p)
 
                 # perform preorder action on newly added item
-                pre_action(stack[-1][0], len(stack))
+                pre_action(stack[-1][0])
 
         # cur and prev are identical
         else:
             # perform postorder action on cur and pop it
-            post_action(cur, len(stack))
+            post_action(cur)
             stack.pop()
     
         (prev, p) = (cur, c)
@@ -328,7 +328,7 @@ print_subtags.format = DEFAULT_PRINTFORMAT
 def human_print_init(tag):
     tag.depth = 0
 
-def human_print_pre(tag, depth):
+def human_print_pre(tag):
     if tag.id in complex_tag_types:
         for child in tag.tags:
             child.depth = tag.depth + 1
@@ -349,7 +349,7 @@ def nbt_txt_print_init(tag):
     except AttributeError as e:
         tag.depth = 0
 
-def nbt_txt_print_pre(tag, depth):
+def nbt_txt_print_pre(tag):
     if tag.id in complex_tag_types:
         for child in tag.tags:
             child.depth = tag.depth + 1
@@ -365,7 +365,7 @@ def nbt_txt_print_pre(tag, depth):
     if tag.id in complex_tag_types:
         print('   ' * tag.depth + '{')
 
-def nbt_txt_print_post(tag, depth):
+def nbt_txt_print_post(tag):
     try:
         filename = tag.filename # throws error if tag isn't an NBTFile
     except AttributeError as e:
