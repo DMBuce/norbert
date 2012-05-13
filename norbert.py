@@ -265,40 +265,47 @@ def traverse_subtags(tag, maxdepth=DEFAULT_MAXDEPTH, pre_action=nothing):
 #   maxdepth:      maximum depth level
 def traverse_subtags2(tag, maxdepth=DEFAULT_MAXDEPTH,
                      pre_action=nothing, post_action=nothing):
+    # stack: a list of (tag, int) pairs
+    # cur:   the current tag
+    # prev:  the previous tag
+    # c:     the index to the sibling to cur's right
+    # p:     the index to the sibling to prev's right
+    #
+    #       
+    #     parent
+    #      / \
+    #   cur   parent.tags[c]
+    #
+
     if tag == None:
         return
     
-    stack = [ tag ]
+    stack = [ (tag, None) ]
     pre_action(tag, len(stack))
-    prev = None
+    (prev, p) = (None, None)
     
     while len(stack) != 0:
         # get cur from top of the stack
-        cur = stack[-1]
+        (cur, c) = stack[-1]
 
         # if cur is the root or a child of prev
         if len(stack) != maxdepth and \
            ( prev == None or (prev.value is None and cur in prev.tags) ):
             if cur.value is None:
                 # push cur's first child on stack
-                stack.append(cur.tags[0])
-                cur.tags[0].sibling = 1
+                push_child(stack, cur, 0)
+
                 # perform preorder action on newly added item
-                pre_action(stack[-1], len(stack))
+                pre_action(stack[-1][0], len(stack))
 
         # if prev is a child of cur
         elif len(stack) != maxdepth and cur.value is None and prev in cur.tags:
-            # push cur's next child on stack
-            if prev.sibling is not None:
-                try:
-                    i = prev.sibling
-                    stack.append(cur.tags[i])
-                    cur.tags[i].sibling = i + 1
-                    # do preorder action on newly added item
-                    pre_action(stack[-1], len(stack))
+            # push cur's next child (prev's sibling) on stack
+            if p is not None:
+                push_child(stack, cur, p)
 
-                except IndexError as e:
-                    pass
+                # perform preorder action on newly added item
+                pre_action(stack[-1][0], len(stack))
 
         # cur and prev are identical
         else:
@@ -306,8 +313,13 @@ def traverse_subtags2(tag, maxdepth=DEFAULT_MAXDEPTH,
             post_action(cur, len(stack))
             stack.pop()
     
-        prev = cur
+        (prev, p) = (cur, c)
 
+def push_child(stack, parent, i):
+    if len(parent.tags) > i + 1:
+        stack.append( (parent.tags[i], i + 1) )
+    else:
+        stack.append( (parent.tags[i], None) )
 
 def print_subtags(tag, maxdepth=DEFAULT_MAXDEPTH):
     traverse_subtags2(tag, pre_action=print_tag, maxdepth=maxdepth)
