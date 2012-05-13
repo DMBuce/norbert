@@ -57,8 +57,8 @@ complex_tag_types = [
 ]
 
 def main():
-    usage = "%prog [option] [tag[=value]]  [tag2[=value2] ... ]"
-    desc  = "Edits or displays an NBT formatted file. " \
+    usage = "%prog [option] [tag[=value]] [tag2[=value2]] ..."
+    desc  = "Edits or displays an NBT file. " \
             "Nested <tag>s can be referenced " \
             "by separating their names with a '.' character. " \
             "List items are referenced by their place in the list. " \
