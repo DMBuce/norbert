@@ -26,6 +26,7 @@ from nbt import nbt
 VERSION = "0.2"
 DEFAULT_MAXDEPTH = 5
 DEFAULT_PRINTFORMAT = "human"
+DEFAULT_SEP = ".#"
 
 # errors
 GENERAL_ERROR = 1
@@ -90,6 +91,17 @@ def main():
                       help="When used with -r, " \
                            "set the maximum recursion depth. Default is " \
                            + str(DEFAULT_MAXDEPTH) + "."),
+    parser.add_option("-s", "--separator",
+                      dest="sep",
+                      default=DEFAULT_SEP,
+                      help="Set the tag separator for norbert-formatted " \
+                           "arguments, input, and output. " \
+                           "The argument to this option must be " \
+                           "a string of one or two characters. " \
+                           "The first character is used to delimit tag " \
+                           "names, and the second character is used to " \
+                           "delimit list items. Default is '" + DEFAULT_SEP + \
+                           "'")
     #parser.add_option("-i", "--input-format", # "nbt", "json", "norbert"
     #parser.add_option("-c", "--create",
 
@@ -98,6 +110,13 @@ def main():
     # if no tags are given, print starting from the top-level tag
     if len(args) == 0:
         args.append("")
+
+    if len(options.sep) == 0 or len(options.sep) > len(DEFAULT_SEP):
+        err("Argument to -s must be 1 or 2 characters: " + options.sep)
+        return INVALID_OPTION
+    else:
+        options.sep += DEFAULT_SEP[ len(options.sep) : len(DEFAULT_SEP) ]
+        norbert_print_pre.sep = options.sep
 
     # validate input format
     if options.format not in formatters:
@@ -142,7 +161,7 @@ def main():
 def norbert(nbtfile, options, arg):
     name, value = split_arg(arg)
 
-    tag = get_tag(nbtfile, name)
+    tag = get_tag(nbtfile, name, sep=options.sep)
     if tag is None:
         err("Tag not found: " + name)
         return TAG_NOT_FOUND
@@ -164,18 +183,18 @@ def split_arg(namevaluepair):
         value = '='.join(namevalue)
     return (name, value)
 
-def get_tag(tag, fullname):
+def get_tag(tag, fullname, sep=DEFAULT_SEP):
     if fullname == "":
         return tag
 
     try:
-        for i in fullname.split('.'):
+        for i in fullname.split(sep[0]):
             try:
                 tag = tag[i]
             except TypeError as e:
                 tag = tag[int(i)]
             except KeyError as e:
-                (i, indexes) = split_name(i)
+                (i, indexes) = split_name(i, sep[1])
                 tag = tag[i]
                 for j in indexes:
                     tag = tag[j]
@@ -184,10 +203,10 @@ def get_tag(tag, fullname):
 
     return tag
 
-def split_name(nameindexlist):
-    nameindex = nameindexlist.split('[')
+def split_name(nameindexlist, sep):
+    nameindex = nameindexlist.split(sep)
     name = nameindex.pop(0)
-    indexes = [ int(i.rstrip(']')) for i in nameindex ]
+    indexes = [ int(i) for i in nameindex ]
 
     return (name, indexes)
 
@@ -380,18 +399,21 @@ def norbert_print_init(tag):
         tag.fullname = tag.name
 
 def norbert_print_pre(tag):
+    sep = norbert_print_pre.sep
     if tag.id in complex_tag_types:
         for i in range(len(tag.tags)):
             child = tag.tags[i]
             if tag.fullname == "":
                 child.fullname = child.name
             elif tag.id == nbt.TAG_COMPOUND:
-                child.fullname = tag.fullname + '.' + child.name
+                child.fullname = tag.fullname + sep[0] + child.name
             elif tag.id == nbt.TAG_LIST:
-                child.fullname = tag.fullname + '[' + str(i) + ']'
+                child.fullname = tag.fullname + sep[1] + str(i)
     else:
-        value = tag_types[tag.id] + '(' + tag.valuestr() + ')'
+        value = '(' + tag_types[tag.id] + ') ' + tag.valuestr()
         print(tag.fullname + ' = ' + value)
+
+norbert_print_pre.sep = DEFAULT_SEP
 
 formatters["norbert"] = \
     (norbert_print_init, norbert_print_pre, nothing, nothing)
