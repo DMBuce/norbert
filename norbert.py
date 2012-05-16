@@ -88,9 +88,8 @@ def main():
                       dest="maxdepth",
                       type="int",
                       default=DEFAULT_MAXDEPTH,
-                      help="When used with -r, " \
-                           "set the maximum recursion depth. Default is " \
-                           + str(DEFAULT_MAXDEPTH) + "."),
+                      help="Set the maximum recursion depth. Default is " \
+                           + str(DEFAULT_MAXDEPTH) + ".")
     parser.add_option("-s", "--separator",
                       dest="sep",
                       default=DEFAULT_SEP,
