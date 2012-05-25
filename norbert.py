@@ -26,6 +26,7 @@ from nbt import nbt
 VERSION = "0.2"
 DEFAULT_MAXDEPTH = 5
 DEFAULT_PRINTFORMAT = "human"
+DEFAULT_INPUTFORMAT = "nbt"
 DEFAULT_SEP = ".#"
 
 # errors
@@ -36,6 +37,7 @@ TAG_NOT_IMPLEMENTED = 5
 TAG_CONVERSION_ERROR = 6
 
 formatters = {}
+readers = {}
 
 tag_types = {
     nbt.TAG_END:        "TAG_End",
@@ -48,7 +50,19 @@ tag_types = {
     nbt.TAG_BYTE_ARRAY: "TAG_Byte_Array",
     nbt.TAG_STRING:     "TAG_String",
     nbt.TAG_LIST:       "TAG_List",
-    nbt.TAG_COMPOUND:   "TAG_Compound"
+    nbt.TAG_COMPOUND:   "TAG_Compound",
+
+    "TAG_End":        nbt.TAG_END,
+    "TAG_Byte":       nbt.TAG_BYTE,
+    "TAG_Short":      nbt.TAG_SHORT,
+    "TAG_Int":        nbt.TAG_INT,
+    "TAG_Long":       nbt.TAG_LONG,
+    "TAG_Float":      nbt.TAG_FLOAT,
+    "TAG_Double":     nbt.TAG_DOUBLE,
+    "TAG_Byte_Array": nbt.TAG_BYTE_ARRAY,
+    "TAG_String":     nbt.TAG_STRING,
+    "TAG_List":       nbt.TAG_LIST,
+    "TAG_Compound":   nbt.TAG_COMPOUND
 }
 
 complex_tag_types = [
@@ -84,6 +98,12 @@ def main():
                            "Valid values are \"human\", \"nbt-txt\" " \
                            "and \"norbert\". " \
                            "Default is \"" + DEFAULT_PRINTFORMAT + "\".") #TODO: add "nbt", "json"
+    parser.add_option("-i", "--input-format",
+                      dest="inputformat",
+                      default=DEFAULT_INPUTFORMAT,
+                      help="Format of the input file. " \
+                           "Valid values are \"nbt\" and \"norbert\". " \
+                           "Default is \"" + DEFAULT_INPUTFORMAT + "\".")
     parser.add_option("-d", "--depth",
                       dest="maxdepth",
                       type="int",
@@ -123,22 +143,10 @@ def main():
         return INVALID_OPTION
 
     # open file
-    nbtfile = None
     try:
-        nbtfile = nbt.NBTFile(options.infile)
+        nbtfile = read_file(options, args)
     except IOError as e:
-        # oh god why
-        if e.strerror is None:
-            e.strerror = str(e)
-
-        if options.infile not in e.strerror:
-            err(e.strerror + ": '" + options.infile + "'")
-        else:
-            err(e.strerror)
-
-        if e.errno is None or e.errno == 0:
-            e.errno = GENERAL_ERROR
-
+        err(e.strerror)
         return e.errno
 
     # read and/or set tags
@@ -156,6 +164,169 @@ def main():
             nbtfile.write_file(options.outfile)
 
     return 0
+
+def read_file(options, args):
+    try:
+        if options.inputformat in readers:
+            reader = readers[options.inputformat]
+            nbtfile = reader(options)
+        else:
+            err("Input format not recognized: " + options.inputformat)
+            return None
+    except IOError as e:
+        # make sure error has strerror, errno
+        if e.strerror is None:
+            e.strerror = str(e)
+
+        if options.infile not in e.strerror:
+            e.strerror += ": '" + options.infile + "'"
+
+        if e.errno is None or e.errno == 0:
+            e.errno = GENERAL_ERROR
+
+        raise e
+
+    return nbtfile
+
+def nbt_read_file(options):
+    return nbt.NBTFile(options.infile)
+
+readers["nbt"] = nbt_read_file
+
+def norbert_read_file(options):
+    nbtfile = nbt.NBTFile()
+    with open(options.infile) as f:
+        for line in f:
+            norbert_create_subtags(nbtfile, line, sep=options.sep)
+
+    return nbtfile
+
+readers["norbert"] = norbert_read_file
+
+def norbert_create_subtags(nbtfile, line, sep=DEFAULT_SEP):
+    tag = nbtfile
+    fullname, value, tagtype = split_line(line)
+    names = fullname.split(sep[0])
+    name = names.pop()
+
+    # create compound tags
+    for n in names:
+        tag = norbert_create_subtag(tag, n, sep=sep)
+
+    # create leaf tag
+    tag = norbert_create_subtag(tag, name, value=value, sep=sep, tagtype=tag_types[tagtype])
+
+# creates a named tag or list and adds it as a child of tag.
+#
+# name can be "tagname" or "tagname#2#3#4" (but not "parent.tagname")
+#
+def norbert_create_subtag(tag, name, value=None, sep=DEFAULT_SEP, tagtype=nbt.TAG_COMPOUND):
+    # if tag already exists, return it
+    testtag = get_tag(tag, name, sep)
+    if testtag != None:
+        return testtag
+
+    name, indexes = split_name(name, sep[1])
+    if len(indexes) > 0:
+        # create list nodes
+        tag = norbert_create_childtag(tag, name, sep=sep, tagtype=nbt.TAG_LIST)
+        lastindex = indexes.pop()
+        for i in indexes:
+            tag = norbert_create_childtag(tag, i, sep=sep, tagtype=nbt.TAG_LIST)
+
+        i = lastindex
+    else:
+        i = name
+
+    tag = norbert_create_childtag(tag, i, value=value, sep=sep, tagtype=tagtype)
+    return tag
+
+# creates a direct child of tag
+#
+# i should be a string (to add to a compound tag) or an int (to insert into a list)
+#
+def norbert_create_childtag(tag, i, value=None, sep=DEFAULT_SEP, tagtype=nbt.TAG_COMPOUND):
+    # create new compound tag
+    if tagtype == nbt.TAG_LIST:
+        newtag = nbt.TAG_List()
+    elif tagtype == nbt.TAG_COMPOUND:
+        newtag = nbt.TAG_Compound()
+    else:
+        newtag = nbt.TAGLIST[tagtype]()
+        set_tag(newtag, value)
+
+    # insert newtag into list
+    if tag.id == nbt.TAG_LIST:
+        tag.tags.insert(i, newtag)
+    # insert into compound tag
+    elif tag.id == nbt.TAG_COMPOUND:
+        newtag.name = i
+        tag.tags.append(newtag)
+
+    return tag[i]
+
+#def norbert_create_subtags2(nbtfile, line, sep=DEFAULT_SEP):
+#    tag = nbtfile
+#    fullname, value, tagtype = split_line(line)
+#    names = fullname.split(sep[0])
+#    name = names.pop()
+#
+#    for i in names:
+#        i, indexes = split_name(i, sep[1])
+#        if len(indexes) == 0:
+#            # insert compound tag
+#            newtag = nbt.TAG_Compound()
+#            newtag.name = i
+#            tag.tags.append(newtag)
+#            tag = tag[i]
+#        else:
+#            # insert list
+#            newtag = nbt.TAG_List(nbt.TAG_LIST, name=i)
+#            tag.tags.append(newtag)
+#            tag = tag[i]
+#
+#            lastindex = indexes.pop()
+#            for j in indexes:
+#                newtag = nbt.TAG_List(nbt.TAG_LIST)
+#                tag.tags.insert(j, newtag)
+#                tag = tag[j]
+#
+#            newtag = nbt.TAG_Compound()
+#            tag.tags.insert(lastindex, newtag)
+#            tag = tag[lastindex]
+#
+#    # insert a tag of the correct type using name, tagtype
+#    i, indexes = split_name(name, sep[1])
+#    if len(indexes) == 0:
+#        tag_id = tag_types[tagtype]
+#        newtag = nbt.TAGLIST[tag_id](name=i, value=value)
+#        tag.tags.append(newtag)
+#    else:
+#        # insert list
+#        newtag = nbt.TAG_List(nbt.TAG_LIST, name=i)
+#        tag.tags.append(newtag)
+#        tag = tag[i]
+#
+#        lastindex = indexes.pop()
+#        for j in indexes:
+#            newtag = nbt.TAG_List(nbt.TAG_LIST)
+#            tag.tags.insert(j, newtag)
+#            tag = tag[j]
+#
+#        tag_id = tag_types[tagtypes]
+#        newtag = nbt.TAGLIST[tag_id](name=i, value=value)
+#        tag.tags.insert(lastindex, newtag)
+#        tag = tag[lastindex]
+
+def split_line(line):
+    name, typevalue = split_arg(line)
+    name = name.strip()
+    typevalue = typevalue.strip()
+
+    tagtype, value = typevalue.split(' ')
+    tagtype = tagtype.lstrip('(').rstrip(')')
+
+    return name, value, tagtype
 
 def norbert(nbtfile, options, arg):
     name, value = split_arg(arg)
@@ -400,6 +571,7 @@ def norbert_print_init(tag):
 def norbert_print_pre(tag):
     sep = norbert_print_pre.sep
     if tag.id in complex_tag_types:
+        # TODO: for i, child in enumerate(tag.tags):
         for i in range(len(tag.tags)):
             child = tag.tags[i]
             if tag.fullname == "":
