@@ -468,7 +468,7 @@ def traverse_subtags(tag, maxdepth=DEFAULT_MAXDEPTH,
         # if cur is the root or a child of prev
         if len(stack) != maxdepth and \
            ( prev == None or is_parent_of(prev, cur) ):
-            if cur.id in complex_tag_types:
+            if cur.id in complex_tag_types and len(cur.tags) != 0:
                 # push cur's first child on stack
                 push_child(stack, cur, 0)
 
