@@ -108,7 +108,7 @@ def main():
                       dest="maxdepth",
                       type="int",
                       default=DEFAULT_MAXDEPTH,
-                      help="Set the maximum recursion depth. Default is " \
+                      help="Set the maximum recursion depth. Use 0 for no limit. Default is " \
                            + str(DEFAULT_MAXDEPTH) + ".")
     parser.add_option("-s", "--separator",
                       dest="sep",
