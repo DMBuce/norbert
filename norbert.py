@@ -84,7 +84,7 @@ def main():
     parser.add_option("-f", "--input-file",
                       dest="infile",
                       default="level.dat",
-                      help="The file to read. Default is level.dat.")
+                      help="The file to read. Default is level.dat.") #TODO: support stdin
     parser.add_option("-o", "--output-file",
                       dest="outfile",
                       default=None,
@@ -103,7 +103,7 @@ def main():
                       default=DEFAULT_INPUTFORMAT,
                       help="Format of the input file. " \
                            "Valid values are \"nbt\" and \"norbert\". " \
-                           "Default is \"" + DEFAULT_INPUTFORMAT + "\".")
+                           "Default is \"" + DEFAULT_INPUTFORMAT + "\".") #TODO: add "json"
     parser.add_option("-d", "--depth",
                       dest="maxdepth",
                       type="int",
@@ -121,7 +121,6 @@ def main():
                            "names, and the second character is used to " \
                            "delimit list items. Default is '" + DEFAULT_SEP + \
                            "'")
-    #parser.add_option("-i", "--input-format", # "nbt", "json", "norbert"
     #parser.add_option("-c", "--create",
 
     (options, args) = parser.parse_args()
