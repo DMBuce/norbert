@@ -196,141 +196,106 @@ def norbert_read_file(options):
     nbtfile = nbt.NBTFile()
     with open(options.infile) as f:
         for line in f:
-            norbert_create_subtags(nbtfile, line, sep=options.sep)
+            # parse names/indexes, type, value of tag
+            names, tag = norbert_parse_line(line, options.sep)
+            # add tag to nbtfile
+            norbert_add_tag(nbtfile, names, tag)
+            
 
     return nbtfile
 
 readers["norbert"] = norbert_read_file
 
-def norbert_create_subtags(nbtfile, line, sep=DEFAULT_SEP):
-    tag = nbtfile
-    fullname, value, tagtype = split_line(line)
-    names = fullname.split(sep[0])
-    name = names.pop()
-
-    # create compound tags
-    for n in names:
-        tag = norbert_create_subtag(tag, n, sep=sep)
-
-    # create leaf tag
-    tag = norbert_create_subtag(tag, name, value=value, sep=sep, tagtype=tag_types[tagtype])
-
-# creates a named tag or list and adds it as a child of tag.
+# parses a norbert-formatted line, e.g.
 #
-# name can be "tagname" or "tagname#2#3#4" (but not "parent.tagname")
+#     norbert_parse_line("asdf.jkl#1#2 = (TAG_Short) 237")
 #
-def norbert_create_subtag(tag, name, value=None, sep=DEFAULT_SEP, tagtype=nbt.TAG_COMPOUND):
-    # if tag already exists, return it
-    testtag = get_tag(tag, name, sep)
-    if testtag != None:
-        return testtag
-
-    name, indexes = split_name(name, sep[1])
-
-    if len(indexes) == 1:
-        # create list node
-        tag = norbert_create_childtag(tag, name, sep=sep, tagtype=nbt.TAG_LIST, listtype=tagtype)
-        i = indexes.pop()
-    elif len(indexes) > 0:
-        # create list nodes
-        tag = norbert_create_childtag(tag, name, sep=sep, tagtype=nbt.TAG_LIST, listtype=nbt.TAG_LIST)
-        lastindex = indexes.pop()
-        for i in indexes:
-            tag = norbert_create_childtag(tag, i, sep=sep, tagtype=nbt.TAG_LIST)
-
-        i = lastindex
-    else:
-        i = name
-
-    tag = norbert_create_childtag(tag, i, value=value, sep=sep, tagtype=tagtype)
-    return tag
-
-# creates a direct child of tag
+# would return a (list, tag) pair with values
 #
-# i should be a string (to add to a compound tag) or an int (to insert into a list)
+#     (["asdf", "jkl", 1, 2], nbt.Tag_Short(237))
 #
-def norbert_create_childtag(tag, i, value=None, sep=DEFAULT_SEP, tagtype=nbt.TAG_COMPOUND, listtype=nbt.TAG_COMPOUND):
-    # create new compound tag
-    if tagtype == nbt.TAG_LIST:
-        newtag = nbt.TAG_List(type=nbt.TAGLIST[listtype])
-    elif tagtype == nbt.TAG_COMPOUND:
-        newtag = nbt.TAG_Compound()
-    else:
-        newtag = nbt.TAGLIST[tagtype]()
-        set_tag(newtag, value)
-
-    # insert newtag into list
-    if tag.id == nbt.TAG_LIST:
-        tag.tags.insert(i, newtag)
-    # insert into compound tag
-    elif tag.id == nbt.TAG_COMPOUND:
-        newtag.name = i
-        tag.tags.append(newtag)
-
-    return tag[i]
-
-#def norbert_create_subtags2(nbtfile, line, sep=DEFAULT_SEP):
-#    tag = nbtfile
-#    fullname, value, tagtype = split_line(line)
-#    names = fullname.split(sep[0])
-#    name = names.pop()
-#
-#    for i in names:
-#        i, indexes = split_name(i, sep[1])
-#        if len(indexes) == 0:
-#            # insert compound tag
-#            newtag = nbt.TAG_Compound()
-#            newtag.name = i
-#            tag.tags.append(newtag)
-#            tag = tag[i]
-#        else:
-#            # insert list
-#            newtag = nbt.TAG_List(nbt.TAG_LIST, name=i)
-#            tag.tags.append(newtag)
-#            tag = tag[i]
-#
-#            lastindex = indexes.pop()
-#            for j in indexes:
-#                newtag = nbt.TAG_List(nbt.TAG_LIST)
-#                tag.tags.insert(j, newtag)
-#                tag = tag[j]
-#
-#            newtag = nbt.TAG_Compound()
-#            tag.tags.insert(lastindex, newtag)
-#            tag = tag[lastindex]
-#
-#    # insert a tag of the correct type using name, tagtype
-#    i, indexes = split_name(name, sep[1])
-#    if len(indexes) == 0:
-#        tag_id = tag_types[tagtype]
-#        newtag = nbt.TAGLIST[tag_id](name=i, value=value)
-#        tag.tags.append(newtag)
-#    else:
-#        # insert list
-#        newtag = nbt.TAG_List(nbt.TAG_LIST, name=i)
-#        tag.tags.append(newtag)
-#        tag = tag[i]
-#
-#        lastindex = indexes.pop()
-#        for j in indexes:
-#            newtag = nbt.TAG_List(nbt.TAG_LIST)
-#            tag.tags.insert(j, newtag)
-#            tag = tag[j]
-#
-#        tag_id = tag_types[tagtypes]
-#        newtag = nbt.TAGLIST[tag_id](name=i, value=value)
-#        tag.tags.insert(lastindex, newtag)
-#        tag = tag[lastindex]
-
-def split_line(line):
+def norbert_parse_line(line, sep=DEFAULT_SEP):
     name, typevalue = split_arg(line)
     name = name.strip()
     typevalue = typevalue.strip()
 
+    # get the list of names/indexes
+    names = []
+    for n in name.split(sep[0]):
+        n, indexes = split_name(n, sep[1])
+        names.append(n)
+        for i in indexes:
+            names.append(int(i))
+
+    # get the type id
     tagtype, value = typevalue.split(' ')
     tagtype = tagtype.lstrip('(').rstrip(')')
+    tagtype = tag_types[tagtype]
 
-    return name, value, tagtype
+    # create the new tag
+    tag = nbt.TAGLIST[tagtype]()
+    set_tag(tag, value)
+
+    return names, tag
+    
+
+# inserts a tag into an nbtfile, creating new TAG_List's and TAG_Compound's as necessary
+#
+def norbert_add_tag(nbtfile, names, newtag):
+    tag = nbtfile
+    for i, name in enumerate(names):
+        testtag = get_tag(tag, str(name))
+        # tag already exists
+        if testtag is not None:
+            tag = testtag
+
+        # add leaf node
+        elif i+1 == len(names):
+            tag = norbert_add_tag_basic(tag, name, newtag)
+
+        # add a list
+        elif isinstance(names[i+1], int):
+            # list of basic tags
+            if i+2 == len(names):
+                listtype = newtag.id
+            # list of lists
+            elif isinstance(names[i+2], int):
+                listtype = nbt.TAG_LIST
+            # list of compounds
+            else:
+                listtype = nbt.TAG_COMPOUND
+
+            tag = norbert_add_tag_list(tag, name, listtype)
+
+        # add a compound
+        else:
+            tag = norbert_add_tag_compound(tag, name)
+
+def norbert_add_tag_list(tag, i, listtype):
+    newtag = nbt.TAG_List(type=nbt.TAGLIST[listtype])
+    norbert_add_child(tag, i, newtag)
+    return newtag
+
+def norbert_add_tag_compound(tag, i):
+    newtag = nbt.TAG_Compound()
+
+    norbert_add_child(tag, i, newtag)
+
+    return newtag
+
+def norbert_add_tag_basic(tag, i, newtag):
+    norbert_add_child(tag, i, newtag)
+
+    return newtag
+
+def norbert_add_child(tag, i, child):
+    # insert child into list
+    if tag.id == nbt.TAG_LIST:
+        tag.tags.insert(i, child)
+    # insert into compound tag
+    elif tag.id == nbt.TAG_COMPOUND:
+        child.name = i
+        tag.tags.append(child)
 
 def norbert(nbtfile, options, arg):
     name, value = split_arg(arg)
