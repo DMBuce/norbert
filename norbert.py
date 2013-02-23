@@ -226,9 +226,14 @@ def norbert_create_subtag(tag, name, value=None, sep=DEFAULT_SEP, tagtype=nbt.TA
         return testtag
 
     name, indexes = split_name(name, sep[1])
-    if len(indexes) > 0:
+
+    if len(indexes) == 1:
+        # create list node
+        tag = norbert_create_childtag(tag, name, sep=sep, tagtype=nbt.TAG_LIST, listtype=tagtype)
+        i = indexes.pop()
+    elif len(indexes) > 0:
         # create list nodes
-        tag = norbert_create_childtag(tag, name, sep=sep, tagtype=nbt.TAG_LIST)
+        tag = norbert_create_childtag(tag, name, sep=sep, tagtype=nbt.TAG_LIST, listtype=nbt.TAG_LIST)
         lastindex = indexes.pop()
         for i in indexes:
             tag = norbert_create_childtag(tag, i, sep=sep, tagtype=nbt.TAG_LIST)
@@ -244,10 +249,10 @@ def norbert_create_subtag(tag, name, value=None, sep=DEFAULT_SEP, tagtype=nbt.TA
 #
 # i should be a string (to add to a compound tag) or an int (to insert into a list)
 #
-def norbert_create_childtag(tag, i, value=None, sep=DEFAULT_SEP, tagtype=nbt.TAG_COMPOUND):
+def norbert_create_childtag(tag, i, value=None, sep=DEFAULT_SEP, tagtype=nbt.TAG_COMPOUND, listtype=nbt.TAG_COMPOUND):
     # create new compound tag
     if tagtype == nbt.TAG_LIST:
-        newtag = nbt.TAG_List()
+        newtag = nbt.TAG_List(type=nbt.TAGLIST[listtype])
     elif tagtype == nbt.TAG_COMPOUND:
         newtag = nbt.TAG_Compound()
     else:
@@ -367,7 +372,7 @@ def get_tag(tag, fullname, sep=DEFAULT_SEP):
                 tag = tag[i]
                 for j in indexes:
                     tag = tag[j]
-    except (KeyError, ValueError, TypeError) as e:
+    except (KeyError, ValueError, TypeError, IndexError) as e:
         return None
 
     return tag
