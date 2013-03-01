@@ -217,18 +217,95 @@ readers["norbert"] = norbert_read_file
 #
 #     (["asdf", "jkl", 1, 2], nbt.Tag_Short(237))
 #
-# TODO: Clean this up. Detect TAG_Lists/TAG_Compounds early in flow control
-#
 def norbert_parse_line(line, sep=DEFAULT_SEP):
     line = line.strip()
-    name, typevalue = split_arg(line)
-    if typevalue is None:
-        err("Poorly formatted norbert tag (no value): " + line)
+    name, tagtype, value = norbert_split_line(line)
+
+    # validate user input
+    if tagtype is None:
+        err("Invalid or missing tag type: " + line)
+        raise IOError(INVALID_TYPE, "Not a norbert file")
+    elif tagtype != nbt.TAG_COMPOUND and value is None:
+        err("Tag value not found: " + line)
         raise IOError(INVALID_VALUE, "Not a norbert file")
-    name = name.strip()
-    typevalue = typevalue.strip()
 
     # get the list of names/indexes
+    names = norbert_split_name(name, sep)
+
+    # create the tag
+    if tagtype == nbt.TAG_LIST:
+        listtype = tag_types[value]
+        tag = nbt.TAG_List(type=nbt.TAGLIST[listtype])
+    elif tagtype == nbt.TAG_COMPOUND:
+        tag = nbt.TAG_Compound()
+    else:
+        tag = nbt.TAGLIST[tagtype]()
+        retval = set_tag(tag, value)
+        if retval != 0:
+            err("Invalid tag value: " + line)
+            raise IOError(retval, "Not a norbert file")
+
+    return names, tag
+
+# splits a norbert line into its name, type, and value
+#
+# examples:
+#     "asdf.jkl = (TAG_String) blah blah = whatever"
+#         -> ("asdf.jkl", TAG_String, "blah blah = whatever")
+#     "foo.bar = (TAG_Compound) {0 Entries}"
+#         -> ("foo.bar", TAG_Compound, None)
+#     "one#2.three = (TAG_List) [0 TAG_Byte(s)]
+#         -> ("one#2.three", TAG_List, "TAG_Byte")
+#
+# if type or value can't be determined, they are returned as None
+#
+def norbert_split_line(nametypevaluetriplet):
+    # initialize return values
+    tagtype = None
+    value = None
+    name = None
+
+    # parse name
+    nametypevalue = nametypevaluetriplet.split('=')
+    name = nametypevalue.pop(0)
+    name = name.strip()
+    nametypevalue = '='.join(nametypevalue)
+
+    # parse tagtype
+    nametypevalue = nametypevalue.split(')')
+    try:
+        tagtype = nametypevalue.pop(0)
+        tagtype = tagtype.lstrip()
+        tagtype = tagtype.lstrip('(')
+        tagtype = tag_types[tagtype] # KeyError
+    except:
+        tagtype = None
+
+    nametypevalue = ')'.join(nametypevalue)
+        
+
+    # parse value
+    nametypevalue = nametypevalue.lstrip()
+    try:
+        if tagtype == nbt.TAG_LIST:
+            # tagtype needs to include list type
+            listtype = nametypevalue.split(' ')[1].split('(')[0] # IndexError
+            value = listtype
+        elif tagtype != nbt.TAG_COMPOUND and nametypevalue != "":
+            value = nametypevalue
+        # else value is None
+    except:
+        value = None
+
+    return (name, tagtype, value)
+
+# splits a full norbert name into its component names and indexes
+#
+# example:
+#     "asdf.jkl"    -> ["asdf", "jkl"]
+#     "one#2.three" -> ["one", 2, "three"]
+#
+def norbert_split_name(name, sep=DEFAULT_SEP):
     names = []
     for n in name.split(sep[0]):
         n, indexes = split_name(n, sep[1])
@@ -236,47 +313,7 @@ def norbert_parse_line(line, sep=DEFAULT_SEP):
         for i in indexes:
             names.append(int(i))
 
-    # if typevalue is e.g. "(TAG_Short) 237"
-    if len(typevalue.split(' ')) == 2:
-        # get the type id
-        tagtype, value = typevalue.split(' ')
-        tagtype = tagtype.lstrip('(').rstrip(')')
-        try:
-            tagtype = tag_types[tagtype]
-        except KeyError as e:
-            err("Poorly formatted norbert tag (bad type): " + line)
-            raise IOError(INVALID_TYPE, "Not a norbert file")
-
-        # create the new tag
-        tag = nbt.TAGLIST[tagtype]()
-        retval = set_tag(tag, value)
-        if retval != 0:
-            raise IOError(TAG_CONVERSION_ERROR, "Not a norbert file")
-
-    # otherwise, typevalue should be e.g.
-    # "(TAG_Compound) {0 entries}" or
-    # "(TAG_List) [0 TAG_Whatever(s)]"
-    else:
-        # get the type id
-        try:
-            tagtype, value1, value2 = typevalue.split(' ')
-            tagtype = tagtype.lstrip('(').rstrip(')')
-            tagtype = tag_types[tagtype]
-        except ValueError as e:
-            err("Poorly formatted norbert tag (bad value): " + line)
-            raise IOError(INVALID_VALUE, "Not a norbert file")
-
-        # create the new tag
-        if value1 == '{0':
-            tag = nbt.TAG_Compound()
-        elif value1 == '[0':
-            listtype = tag_types[value2.rstrip('(s)]')]
-            tag = nbt.TAG_List(listtype)
-        else:
-            err("Poorly formatted norbert tag (bad value): " + line)
-            raise IOError(INVALID_VALUE, "Not a norbert file")
-
-    return names, tag
+    return names
 
 # inserts a tag into an nbtfile, creating new TAG_List's and TAG_Compound's as necessary
 #
