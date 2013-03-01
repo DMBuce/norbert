@@ -35,6 +35,8 @@ INVALID_OPTION = 2
 TAG_NOT_FOUND = 4
 TAG_NOT_IMPLEMENTED = 5
 TAG_CONVERSION_ERROR = 6
+INVALID_VALUE = 7
+INVALID_TYPE = 8
 
 formatters = {}
 readers = {}
@@ -189,17 +191,19 @@ def read_file(options, args):
 
 def nbt_read_file(options):
     return nbt.NBTFile(options.infile)
-
 readers["nbt"] = nbt_read_file
 
 def norbert_read_file(options):
     nbtfile = nbt.NBTFile()
     with open(options.infile) as f:
-        for line in f:
-            # parse names/indexes, type, value of tag
-            names, tag = norbert_parse_line(line, options.sep)
-            # add tag to nbtfile
-            norbert_add_tag(nbtfile, names, tag)
+        try:
+            for line in f:
+                # parse names/indexes, type, value of tag
+                names, tag = norbert_parse_line(line, options.sep)
+                # add tag to nbtfile
+                norbert_add_tag(nbtfile, names, tag)
+        except UnicodeDecodeError as e:
+            raise IOError("Not a norbert file")
 
     return nbtfile
 
@@ -213,8 +217,13 @@ readers["norbert"] = norbert_read_file
 #
 #     (["asdf", "jkl", 1, 2], nbt.Tag_Short(237))
 #
+# TODO: Clean this up. Detect TAG_Lists/TAG_Compounds early in flow control
+#
 def norbert_parse_line(line, sep=DEFAULT_SEP):
     name, typevalue = split_arg(line)
+    if typevalue is None:
+        err("Poorly formatted norbert tag (no value): " + line)
+        raise IOError(INVALID_VALUE, "Not a norbert file")
     name = name.strip()
     typevalue = typevalue.strip()
 
@@ -231,20 +240,30 @@ def norbert_parse_line(line, sep=DEFAULT_SEP):
         # get the type id
         tagtype, value = typevalue.split(' ')
         tagtype = tagtype.lstrip('(').rstrip(')')
-        tagtype = tag_types[tagtype]
+        try:
+            tagtype = tag_types[tagtype]
+        except KeyError as e:
+            err("Poorly formatted norbert tag (bad type): " + line)
+            raise IOError(INVALID_TYPE, "Not a norbert file")
 
         # create the new tag
         tag = nbt.TAGLIST[tagtype]()
-        set_tag(tag, value)
+        retval = set_tag(tag, value)
+        if retval != 0:
+            raise IOError(TAG_CONVERSION_ERROR, "Not a norbert file")
 
     # otherwise, typevalue should be e.g.
     # "(TAG_Compound) {0 entries}" or
     # "(TAG_List) [0 TAG_Whatever(s)]"
     else:
-        tagtype, value1, value2 = typevalue.split(' ')
-        tagtype = tagtype.lstrip('(').rstrip(')')
-        tagtype = tag_types[tagtype]
         # get the type id
+        try:
+            tagtype, value1, value2 = typevalue.split(' ')
+            tagtype = tagtype.lstrip('(').rstrip(')')
+            tagtype = tag_types[tagtype]
+        except ValueError as e:
+            err("Poorly formatted norbert tag (bad value): " + line)
+            raise IOError(INVALID_VALUE, "Not a norbert file")
 
         # create the new tag
         if value1 == '{0':
@@ -253,7 +272,8 @@ def norbert_parse_line(line, sep=DEFAULT_SEP):
             listtype = tag_types[value2.rstrip('(s)]')]
             tag = nbt.TAG_List(listtype)
         else:
-            raise ValueError("Poorly formatted norbert: " + typevalue)
+            err("Poorly formatted norbert tag (bad value): " + line)
+            raise IOError(INVALID_VALUE, "Not a norbert file")
 
     return names, tag
 
