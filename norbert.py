@@ -525,9 +525,7 @@ def norbert_print_init(tag):
 def norbert_print_pre(tag):
     sep = norbert_print_pre.sep
     if tag.id in complex_tag_types:
-        # TODO: for i, child in enumerate(tag.tags):
-        for i in range(len(tag.tags)):
-            child = tag.tags[i]
+        for i, child in enumerate(tag.tags):
             if tag.fullname == "":
                 child.fullname = child.name
             elif tag.id == nbt.TAG_COMPOUND:
