@@ -200,7 +200,6 @@ def norbert_read_file(options):
             names, tag = norbert_parse_line(line, options.sep)
             # add tag to nbtfile
             norbert_add_tag(nbtfile, names, tag)
-            
 
     return nbtfile
 
@@ -257,7 +256,6 @@ def norbert_parse_line(line, sep=DEFAULT_SEP):
             raise ValueError("Poorly formatted norbert: " + typevalue)
 
     return names, tag
-    
 
 # inserts a tag into an nbtfile, creating new TAG_List's and TAG_Compound's as necessary
 #
@@ -422,7 +420,7 @@ def traverse_subtags(tag, maxdepth=DEFAULT_MAXDEPTH,
     # c:     the index to the sibling to cur's right
     # p:     the index to the sibling to prev's right
     #
-    #       
+    #
     #     parent
     #      / \
     #   cur   parent.tags[c]
@@ -430,11 +428,11 @@ def traverse_subtags(tag, maxdepth=DEFAULT_MAXDEPTH,
 
     if tag == None:
         return
-    
+
     stack = [ (tag, None) ]
     pre_action(tag)
     (prev, p) = (None, None)
-    
+
     while len(stack) != 0:
         # get cur from top of the stack
         (cur, c) = stack[-1]
@@ -463,7 +461,7 @@ def traverse_subtags(tag, maxdepth=DEFAULT_MAXDEPTH,
             # perform postorder action on cur and pop it
             post_action(cur)
             stack.pop()
-    
+
         (prev, p) = (cur, c)
 
 # pushes a child and the index of the next child (if any) on the stack
