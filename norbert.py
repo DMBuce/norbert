@@ -88,8 +88,8 @@ def main():
     parser.add_option("-o", "--output-file",
                       dest="outfile",
                       default=None,
-                      help="The file to write to. Note: if not provided, " \
-                           "any arguments of the form <tag>=<value> " \
+                      help="The file to write to. If not provided, " \
+                           "any changes made with <tag>=<value> arguments " \
                            "won't be written to disk.")
     parser.add_option("-p", "--print-format",
                       dest="format",
