@@ -228,13 +228,33 @@ def norbert_parse_line(line, sep=DEFAULT_SEP):
             names.append(int(i))
 
     # get the type id
-    tagtype, value = typevalue.split(' ')
-    tagtype = tagtype.lstrip('(').rstrip(')')
-    tagtype = tag_types[tagtype]
+    #
+    # if typevalue is "(TAG_Short) 237"
+    if len(typevalue.split(' ')) == 2:
+        tagtype, value = typevalue.split(' ')
+        tagtype = tagtype.lstrip('(').rstrip(')')
+        tagtype = tag_types[tagtype]
 
-    # create the new tag
-    tag = nbt.TAGLIST[tagtype]()
-    set_tag(tag, value)
+        # create the new tag
+        tag = nbt.TAGLIST[tagtype]()
+        set_tag(tag, value)
+
+    # otherwise, typevalue should be of
+    # "(TAG_Compound) {0 entries}" or
+    # "(TAG_List) [0 TAG_Whatever(s)]"
+    else:
+        tagtype, value1, value2 = typevalue.split(' ')
+        tagtype = tagtype.lstrip('(').rstrip(')')
+        tagtype = tag_types[tagtype]
+
+        # create the new tag
+        if value1 == '{0':
+            tag = nbt.TAG_Compound()
+        elif value1 == '[0':
+            listtype = tag_types[value2.rstrip('(s)]')]
+            tag = nbt.TAG_List(listtype)
+        else:
+            raise ValueError("Poorly formatted norbert: " + typevalue)
 
     return names, tag
     
