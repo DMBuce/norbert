@@ -524,7 +524,7 @@ def norbert_print_init(tag):
 
 def norbert_print_pre(tag):
     sep = norbert_print_pre.sep
-    if tag.id in complex_tag_types:
+    if tag.id in complex_tag_types and len(tag.tags) != 0:
         for i, child in enumerate(tag.tags):
             if tag.fullname == "":
                 child.fullname = child.name
