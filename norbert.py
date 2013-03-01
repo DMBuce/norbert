@@ -220,6 +220,7 @@ readers["norbert"] = norbert_read_file
 # TODO: Clean this up. Detect TAG_Lists/TAG_Compounds early in flow control
 #
 def norbert_parse_line(line, sep=DEFAULT_SEP):
+    line = line.strip()
     name, typevalue = split_arg(line)
     if typevalue is None:
         err("Poorly formatted norbert tag (no value): " + line)
