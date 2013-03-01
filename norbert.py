@@ -226,10 +226,9 @@ def norbert_parse_line(line, sep=DEFAULT_SEP):
         for i in indexes:
             names.append(int(i))
 
-    # get the type id
-    #
-    # if typevalue is "(TAG_Short) 237"
+    # if typevalue is e.g. "(TAG_Short) 237"
     if len(typevalue.split(' ')) == 2:
+        # get the type id
         tagtype, value = typevalue.split(' ')
         tagtype = tagtype.lstrip('(').rstrip(')')
         tagtype = tag_types[tagtype]
@@ -238,13 +237,14 @@ def norbert_parse_line(line, sep=DEFAULT_SEP):
         tag = nbt.TAGLIST[tagtype]()
         set_tag(tag, value)
 
-    # otherwise, typevalue should be of
+    # otherwise, typevalue should be e.g.
     # "(TAG_Compound) {0 entries}" or
     # "(TAG_List) [0 TAG_Whatever(s)]"
     else:
         tagtype, value1, value2 = typevalue.split(' ')
         tagtype = tagtype.lstrip('(').rstrip(')')
         tagtype = tag_types[tagtype]
+        # get the type id
 
         # create the new tag
         if value1 == '{0':
