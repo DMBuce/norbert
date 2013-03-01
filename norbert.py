@@ -251,7 +251,7 @@ def norbert_add_tag(nbtfile, names, newtag):
 
         # add leaf node
         elif i+1 == len(names):
-            tag = norbert_add_tag_basic(tag, name, newtag)
+            tag = norbert_add_child(tag, name, newtag)
 
         # add a list
         elif isinstance(names[i+1], int):
@@ -265,28 +265,11 @@ def norbert_add_tag(nbtfile, names, newtag):
             else:
                 listtype = nbt.TAG_COMPOUND
 
-            tag = norbert_add_tag_list(tag, name, listtype)
+            tag = norbert_add_child(tag, name, nbt.TAG_List(type=nbt.TAGLIST[listtype]))
 
         # add a compound
         else:
-            tag = norbert_add_tag_compound(tag, name)
-
-def norbert_add_tag_list(tag, i, listtype):
-    newtag = nbt.TAG_List(type=nbt.TAGLIST[listtype])
-    norbert_add_child(tag, i, newtag)
-    return newtag
-
-def norbert_add_tag_compound(tag, i):
-    newtag = nbt.TAG_Compound()
-
-    norbert_add_child(tag, i, newtag)
-
-    return newtag
-
-def norbert_add_tag_basic(tag, i, newtag):
-    norbert_add_child(tag, i, newtag)
-
-    return newtag
+            tag = norbert_add_child(tag, name, nbt.TAG_Compound())
 
 def norbert_add_child(tag, i, child):
     # insert child into list
@@ -296,6 +279,8 @@ def norbert_add_child(tag, i, child):
     elif tag.id == nbt.TAG_COMPOUND:
         child.name = i
         tag.tags.append(child)
+
+    return child
 
 def norbert(nbtfile, options, arg):
     name, value = split_arg(arg)
