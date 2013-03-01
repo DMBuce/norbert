@@ -47,7 +47,7 @@ View +player.dat+:
 
 View +GameType+ tag in +level.dat+:
 
-	$ norbert Data.GameType
+	$ norbert Data,GameType
 
 Set game mode to Creative:
 

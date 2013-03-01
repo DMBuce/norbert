@@ -27,7 +27,7 @@ VERSION = "0.2"
 DEFAULT_MAXDEPTH = 5
 DEFAULT_PRINTFORMAT = "human"
 DEFAULT_INPUTFORMAT = "nbt"
-DEFAULT_SEP = ".#"
+DEFAULT_SEP = ",#"
 
 # errors
 GENERAL_ERROR = 1
@@ -77,9 +77,9 @@ def main():
     usage = "%prog [option] [tag[=value]] [tag2[=value2]] ..."
     desc  = "Edits or displays an NBT file. " \
             "Nested <tag>s can be referenced " \
-            "by separating their names with a '.' character. " \
+            "by separating their names with a ',' character. " \
             "List items are referenced by their place in the list. " \
-            "For example, \"Inventory.1.id\" refers to the block id of the " \
+            "For example, \"Inventory,1,id\" refers to the block id of the " \
             "first inventory item in a typical Minecraft player.dat file."
     parser = optparse.OptionParser(version=VERSION, usage=usage,
                                    description=desc)
