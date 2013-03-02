@@ -110,8 +110,8 @@ def main():
                       dest="maxdepth",
                       type="int",
                       default=DEFAULT_MAXDEPTH,
-                      help="Set the maximum recursion depth. Use 0 for no limit. Default is " \
-                           + str(DEFAULT_MAXDEPTH) + ".")
+                      help="Set the maximum recursion depth. Use 0 for no " \
+                           "limit. Default is " + str(DEFAULT_MAXDEPTH) + ".")
     parser.add_option("-s", "--separator",
                       dest="sep",
                       default=DEFAULT_SEP,
@@ -315,7 +315,8 @@ def norbert_split_name(name, sep=DEFAULT_SEP):
 
     return names
 
-# inserts a tag into an nbtfile, creating new TAG_List's and TAG_Compound's as necessary
+# inserts a tag into an nbtfile, creating new TAG_List's and TAG_Compound's as
+# necessary
 #
 def norbert_add_tag(nbtfile, names, newtag):
     tag = nbtfile
@@ -341,7 +342,9 @@ def norbert_add_tag(nbtfile, names, newtag):
             else:
                 listtype = nbt.TAG_COMPOUND
 
-            tag = norbert_add_child(tag, name, nbt.TAG_List(type=nbt.TAGLIST[listtype]))
+            tag = norbert_add_child(tag, name, \
+                                    nbt.TAG_List(type=nbt.TAGLIST[listtype])
+            )
 
         # add a compound
         else:
@@ -574,7 +577,9 @@ def nbt_txt_print_pre(tag):
     if tag.name is None or tag.name == "":
         print('   ' * tag.depth + tag_types[tag.id] + ": " + tag.valuestr())
     else:
-        print('   ' * tag.depth + tag_types[tag.id] + "(\"" + tag.name + "\"): " + tag.valuestr())
+        print('   ' * tag.depth + tag_types[tag.id] + "(\"" + tag.name + \
+              "\"): " + tag.valuestr()
+        )
 
     if tag.id in complex_tag_types:
         print('   ' * tag.depth + '{')
