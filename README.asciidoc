@@ -72,7 +72,7 @@ Known bugs. Fixes coming Soon(TM):
 Copyright
 ---------
 
-Norbert is copyright (C) 2012 DMBuce <dmbuce@gmail.com>
+Norbert is copyright (C) 2012-2013 DMBuce <dmbuce@gmail.com>
 and is licensed through the GNU General Public License, version 2 or later.
 
 
