@@ -74,7 +74,7 @@ complex_tag_types = [
 ]
 
 def main():
-    usage = "%prog [option] [tag[=value]] [tag2[=value2]] ..."
+    usage = "%prog [option] [tag[=value]] [tag2[=value2]] ..." #TODO: man page
     desc  = "Edits or displays an NBT file. " \
             "Nested <tag>s can be referenced " \
             "by separating their names with a ',' character. " \
