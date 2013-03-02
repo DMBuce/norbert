@@ -69,7 +69,6 @@ Known bugs. Fixes coming Soon(TM):
 * Doesn't currently support TAG_Byte_Arrays
 * Doesn't support non-gzipped NBT files
 * Doesn't support Region files
-* Doesn't indicate failures with exit codes very well
 
 Copyright
 ---------
