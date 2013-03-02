@@ -24,7 +24,7 @@ import sys
 from nbt import nbt
 
 VERSION = "0.2"
-DEFAULT_MAXDEPTH = 5
+DEFAULT_MAXDEPTH = 8
 DEFAULT_PRINTFORMAT = "human"
 DEFAULT_INPUTFORMAT = "nbt"
 DEFAULT_SEP = ",#"
