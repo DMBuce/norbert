@@ -1,4 +1,6 @@
 
-# nbt files
+# various nbt formats
 *.dat
+*.dat.norbert
+*.mca.gz
 
