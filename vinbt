@@ -102,7 +102,8 @@ editor="$(which_editor)"
 norbert="$(which_norbert)" || exit $?
 
 file="$1"
-tmpfile="$(mktemp --tmpdir "vinbt-$file.norbert.XXXXXXXXXX")" || exit $?
+tmpfile="$(mktemp --tmpdir "vinbt-$(basename "$file").norbert.XXXXXXXXXX")" \
+	|| exit $?
 trap "rm -f \"$tmpfile\"" EXIT
 
 $norbert -d 0 -p norbert -f "$file" >"$tmpfile" || exit $?
