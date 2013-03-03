@@ -117,6 +117,12 @@ if diff -q "$tmpfile" <(echo "$tmpfileorig") >/dev/null; then
 else
 	warn "$PROG: changes made"
 	warn "$PROG: writing changes to $file"
-	$norbert -d 0 -i norbert -f "$tmpfile" -o "$file" >/dev/null
+	if ! $norbert -d 0 -i norbert -f "$tmpfile" -o "$file" >/dev/null; then
+		warn "$PROG: error writing changes"
+		savefile="$(mktemp "vinbt-$(basename "$file").norbert.XXXXXXXXXX")" \
+			|| exit $?
+		warn "$PROG: saving as $savefile"
+		cp "$tmpfile" "$savefile"
+	fi
 fi
 
