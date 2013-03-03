@@ -68,7 +68,6 @@ tag_types = {
 }
 
 complex_tag_types = [
-    nbt.TAG_BYTE_ARRAY,
     nbt.TAG_LIST,
     nbt.TAG_COMPOUND
 ]
@@ -439,6 +438,9 @@ def set_tag(tag, value):
         elif tag.id == nbt.TAG_DOUBLE:
             # convert to float
             tag.value = float(value)
+        elif tag.id == nbt.TAG_BYTE_ARRAY:
+            # convert to list of int's
+            tag.value = [ int(i) for i in value.strip('[]').split(',') ]
         elif tag.id == nbt.TAG_STRING:
             # no conversion needed
             tag.value = value
@@ -615,7 +617,12 @@ def norbert_print_pre(tag):
             elif tag.id == nbt.TAG_LIST:
                 child.fullname = tag.fullname + sep[1] + str(i)
     else:
-        value = '(' + tag_types[tag.id] + ') ' + tag.valuestr()
+        if tag.id == nbt.TAG_BYTE_ARRAY:
+            value = '(' + tag_types[tag.id] + ') ' + \
+                    '[' + ','.join(map(str, tag.value)) + ']'
+        else:
+            value = '(' + tag_types[tag.id] + ') ' + tag.valuestr()
+
         print(tag.fullname + ' = ' + value)
 
 norbert_print_pre.sep = DEFAULT_SEP
