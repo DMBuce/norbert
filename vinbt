@@ -1,0 +1,121 @@
+#!/bin/bash
+#
+#   vinbt - interactive command line NBT editor
+#
+#   Copyright (C) 2012-2013 DMBuce <dmbuce@gmail.com>
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License along
+#   with this program; if not, write to the Free Software Foundation, Inc.,
+#   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+#
+
+PROG="$(basename $0)"
+USAGE="Usage: $PROG <file>
+
+	Edit an NBT file using a text editor.
+"
+
+# print message to stdout
+msg() {
+	printf "$1\n"
+}
+
+# print warning to stderr
+warn() {
+	printf "$1\n" >&2
+}
+
+# print error to stderr and quit
+die() {
+	warn "$1"
+	exit "${2-1}"
+}
+
+# append dir to PATH
+pathmunge () { 
+    local dir="$1"
+    if [[ -d "$dir" ]] && ! echo "$PATH" | egrep -q "(^|:)$dir($|:)"; then
+        if [[ "$2" == "before" ]]; then
+            PATH="$dir:$PATH"
+        else
+            PATH="$PATH:$dir"
+        fi
+    fi
+}
+
+# find norbert
+which_norbert() {
+	local norbert dir PATHORIG
+	PATHORIG="$PATH"
+
+	if [[ -x "$NORBERT" ]]; then
+		echo "$NORBERT"
+		return 0
+	fi
+
+	for dir in "$HOME/bin" "$PWD"; do
+		pathmunge "$dir"
+	done
+
+	for norbert in norbert norbert.py; do
+		if which "$norbert" 2>/dev/null; then
+			PATH="$PATHORIG"
+			return 0
+		fi
+	done
+
+	die "$PROG: no norbert in ($PATH)"
+}
+
+# find a text editor
+which_editor() {
+	local editor
+	if [[ "$DISPLAY" != "" ]]; then
+		editor="${VISUAL}"
+	fi
+	editor="${editor:-$EDITOR}"
+	editor="${editor:-vi}"
+	echo "$editor"
+}
+
+# print usage and quit if --help given
+case "$1" in "-h"|"--help"|"")
+	msg "$USAGE"
+	exit
+esac
+
+if [[ "$#" != 1 ]]; then
+	die "$USAGE"
+fi
+
+editor="$(which_editor)"
+norbert="$(which_norbert)" || exit $?
+
+file="$1"
+tmpfile="$(mktemp --tmpdir "vinbt-$file.norbert.XXXXXXXXXX")" || exit $?
+trap "rm -f \"$tmpfile\"" EXIT
+
+$norbert -d 0 -p norbert -f "$file" >"$tmpfile" || exit $?
+tmpfileorig="$(<"$tmpfile")"
+
+$editor "$tmpfile"
+
+if diff -q "$tmpfile" <(echo "$tmpfileorig") >/dev/null; then
+	warn "$PROG: no changes made"
+	warn "$PROG: $file unchanged"
+else
+	warn "$PROG: changes made"
+	warn "$PROG: writing changes to $file"
+	$norbert -d 0 -i norbert -f "$tmpfile" -o "$file" >/dev/null
+fi
+
