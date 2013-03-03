@@ -291,7 +291,8 @@ def norbert_split_line(nametypevaluetriplet):
             # tagtype needs to include list type
             listtype = nametypevalue.split(' ')[1].split('(')[0] # IndexError
             value = listtype
-        elif tagtype != nbt.TAG_COMPOUND and nametypevalue != "":
+        elif tagtype == nbt.TAG_STRING \
+          or ( tagtype != nbt.TAG_COMPOUND and nametypevalue != "" ):
             value = nametypevalue
         # else value is None
     except:

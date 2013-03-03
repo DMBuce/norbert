@@ -69,6 +69,7 @@ Known bugs. Fixes coming Soon(TM):
 * Doesn't currently support TAG_Byte_Arrays
 * Doesn't support non-gzipped NBT files
 * Doesn't support Region files
+* Doesn't always play nice with stdin/stdout
 
 Copyright
 ---------
