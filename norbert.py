@@ -317,6 +317,10 @@ def norbert_split_name(name, sep=DEFAULT_SEP):
 # necessary
 #
 def norbert_add_tag(nbtfile, names, newtag):
+    # give the root TAG_Compound the right name
+    nbtfile.name = names[0]
+    names.pop(0)
+
     tag = nbtfile
     for i, name in enumerate(names):
         testtag = get_tag(tag, str(name))
