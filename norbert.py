@@ -286,11 +286,7 @@ def norbert_split_line(nametypevaluetriplet):
     # parse value
     nametypevalue = nametypevalue.lstrip()
     try:
-        if tagtype == nbt.TAG_LIST:
-            # tagtype needs to include list type
-            listtype = nametypevalue.split(' ')[1].split('(')[0] # IndexError
-            value = listtype
-        elif tagtype == nbt.TAG_STRING \
+        if tagtype == nbt.TAG_STRING \
           or ( tagtype != nbt.TAG_COMPOUND and nametypevalue != "" ):
             value = nametypevalue
         # else value is None
@@ -618,6 +614,8 @@ def norbert_print_pre(tag):
         if tag.id == nbt.TAG_BYTE_ARRAY:
             value = '(' + tag_types[tag.id] + ') ' + \
                     ','.join(map(str, tag.value))
+        elif tag.id == nbt.TAG_LIST:
+            value = '(' + tag_types[tag.id] + ') ' + tag_types[tag.tagID]
         else:
             value = '(' + tag_types[tag.id] + ') ' + tag.valuestr()
 
