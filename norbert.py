@@ -440,7 +440,7 @@ def set_tag(tag, value):
             tag.value = float(value)
         elif tag.id == nbt.TAG_BYTE_ARRAY:
             # convert to list of int's
-            tag.value = [ int(i) for i in value.strip('[]').split(',') ]
+            tag.value = [ int(i) for i in value.split(',') ]
         elif tag.id == nbt.TAG_STRING:
             # no conversion needed
             tag.value = value
@@ -617,7 +617,7 @@ def norbert_print_pre(tag):
     else:
         if tag.id == nbt.TAG_BYTE_ARRAY:
             value = '(' + tag_types[tag.id] + ') ' + \
-                    '[' + ','.join(map(str, tag.value)) + ']'
+                    ','.join(map(str, tag.value))
         else:
             value = '(' + tag_types[tag.id] + ') ' + tag.valuestr()
 
