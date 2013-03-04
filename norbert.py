@@ -563,11 +563,7 @@ formatters["human"] = (human_print_init, human_print_pre, nothing, nothing)
 
 
 def nbt_txt_print_init(tag):
-    try:
-        filename = tag.filename # throws error if tag isn't an NBTFile
-        tag.depth = -1
-    except AttributeError as e:
-        tag.depth = 0
+    tag.depth = 0
 
 def nbt_txt_print_pre(tag):
     if tag.id in complex_tag_types:
@@ -588,11 +584,8 @@ def nbt_txt_print_pre(tag):
         print('   ' * tag.depth + '{')
 
 def nbt_txt_print_post(tag):
-    try:
-        filename = tag.filename # throws error if tag isn't an NBTFile
-    except AttributeError as e:
-        if tag.id in complex_tag_types:
-            print('   ' * tag.depth + '}')
+    if tag.id in complex_tag_types:
+        print('   ' * tag.depth + '}')
 
 formatters["nbt-txt"] = \
     (nbt_txt_print_init, nbt_txt_print_pre, nbt_txt_print_post, nothing)
@@ -600,19 +593,13 @@ formatters["nbt-txt"] = \
 
 
 def norbert_print_init(tag):
-    try:
-        filename = tag.filename # throws error if tag isn't an NBTFile
-        tag.fullname = ""
-    except AttributeError as e:
-        tag.fullname = tag.name
+    tag.fullname = tag.name
 
 def norbert_print_pre(tag):
     sep = norbert_print_pre.sep
     if tag.id in complex_tag_types and len(tag.tags) != 0:
         for i, child in enumerate(tag.tags):
-            if tag.fullname == "":
-                child.fullname = child.name
-            elif tag.id == nbt.TAG_COMPOUND:
+            if tag.id == nbt.TAG_COMPOUND:
                 child.fullname = tag.fullname + sep[0] + child.name
             elif tag.id == nbt.TAG_LIST:
                 child.fullname = tag.fullname + sep[1] + str(i)
