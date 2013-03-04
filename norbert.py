@@ -573,11 +573,22 @@ def nbt_txt_print_pre(tag):
     if tag.depth < 0:
         return
 
-    if tag.name is None or tag.name == "":
-        print('   ' * tag.depth + tag_types[tag.id] + ": " + tag.valuestr())
+    if tag.id == nbt.TAG_COMPOUND:
+        value = str(len(tag.tags)) + " entries"
+    elif tag.id == nbt.TAG_LIST:
+        value = str(len(tag.tags)) + " entries of type " + tag_types[tag.tagID]
+        for child in tag.tags:
+            child.name = None
+    elif tag.id == nbt.TAG_BYTE_ARRAY:
+        value = '[' + str(len(tag.value)) + " bytes]"
+    else:
+        value = tag.valuestr()
+
+    if tag.name is None:
+        print('   ' * tag.depth + tag_types[tag.id] + ": " + value)
     else:
         print('   ' * tag.depth + tag_types[tag.id] + "(\"" + tag.name + \
-              "\"): " + tag.valuestr()
+              "\"): " + value
         )
 
     if tag.id in complex_tag_types:
