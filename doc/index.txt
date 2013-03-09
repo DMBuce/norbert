@@ -10,7 +10,7 @@ Overview
 --------
 **N**or**B**er**T** is a command-line utility for editing and displaying
 http://web.archive.org/web/20110723210920/http://www.minecraft.net/docs/NBT.txt[NBT]
-files. It can be used to read or modify files such as +level.dat+,
+files. It can be used to read or modify Minecraft files such as +level.dat+,
 +player.dat+, +map_N.dat+, and so on.
 
 Norbert is also the name of a file format used to represent NBT data. The goal
