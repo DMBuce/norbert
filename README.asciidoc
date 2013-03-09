@@ -14,7 +14,7 @@ norbert is also the name of a file format used to represent NBT data. The goal
 of the format is to be easily parsed by text-based command line tools.
 
 vinbt is a script that can be used to edit an NBT file using a text
-editor such as vi.
+editor such as vi. It is provided in the norbert source distribution.
 
 Documentation
 -------------

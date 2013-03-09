@@ -17,12 +17,27 @@ norbert is also the name of a file format used to represent NBT data. The goal
 of the format is to be easily parsed by text-based command line tools.
 
 vinbt is a script that can be used to edit an NBT file using a text
-editor such as vi.
+editor such as vi. It is provided in the norbert source distribution.
+
+Documentation
+-------------
+The full documentation for norbert is kept in
+link:http://www.methods.co.nz/asciidoc/[AsciiDoc] format under the +doc/+
+directory in the source distribution.
+
+Man Pages
+~~~~~~~~~
+There are several man pages available for norbert and related tools.
+
+* linkman:norbert[1]
+* linkman:norbert[5]
+* linkman:vinbt[1]
 
 Install
 -------
 
 Before you attempt to install norbert, make sure you have its dependencies:
+
 * Python 2 or 3
 * Thomas Woolford's https://github.com/twoolie/NBT[NBT library]
 
@@ -34,20 +49,6 @@ and make sure it's executable
 Use the same procedure to install vinbt
 
     # install -m755 vinbt /usr/local/bin/vinbt
-
-Documentation
--------------
-The full documentation for norbert is kept in
-link:http://www.methods.co.nz/asciidoc/[AsciiDoc] format under the +doc/+
-directory in the source distribution.
-
-Man Pages
-~~~~~~~~~
-There are several man pages available for norbert and its custom file format.
-
-* linkman:norbert[1]
-* linkman:norbert[5]
-* linkman:vinbt[1]
 
 Development
 -----------
