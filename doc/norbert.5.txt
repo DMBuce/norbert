@@ -1,0 +1,230 @@
+norbert(5)
+==========
+
+Name
+----
+norbert - textual NBT file format.
+
+Synopsis
+--------
+'file'.norbert
+
+Description
+-----------
+IMPORTANT: This document describes an experimental file format that is subject
+to change.
+
+Norbert is a text file format used by the linkman:norbert[1] tool to represent
+NBT data. The goal of the format is to be easily parsed by text-based command
+line tools. Each line in a norbert-formatted file represents a single leaf
+tag, and has the form
+
+	'fullname' = ('type') 'value'
+
+'fullname' is constructed from the leaf tag's name and the names of its
+ancestors. 'type' is the tag type of the leaf tag. 'value' is the leaf tag's
+payload. 'fullname', ('type'), 'value', and the equals sign (+=+) may be padded with
+any amount of whitespace without changing how the tag is interpreted. There
+must not be any whitespace between the parentheses and 'type', however. Thus,
++'fullname' = ( 'type' ) 'value'+ is an invalid norbert tag.
+
+Norbert is not suitable for representing tags with special characters in their
+names or payloads. In particular, implementations of this spec may have trouble
+parsing tags with whitespace or characters from the string +,#=+ in
+'fullname' or 'value'.
+
+The format of 'fullname', 'type', and 'value' is explained in the <<N,Names>>,
+<<T,Types>>, and <<V,Values>> sections below. For examples, see the
+<<E,Examples>> section.
+
+[[N]]
+Names
+-----
+
+To construct 'fullname', start with the name of the root tag and traverse the NBT
+tree towards the leaf tag. For each child of a TAG_Compound traversed, the
+child's name is prepended with a comma and appended to 'fullname'. For each child
+of a TAG_List traversed, the child's index in the list is prepended with a hash
+symbol (+#+) and appended to 'fullname'. Construction of 'fullname' is complete when
+the child tag is reached.
+
+Thus, if 'fullname' is +foo,bar#0,baz+, it represents a leaf tag named "baz" which
+is the 0th item in a TAG_List named "bar" which is a member of a
+TAG_Compound named "foo". Or, put another way, TAG_Compound +foo+ is the parent
+of TAG_List +bar+, which is the parent of its 0th tag +baz+. If +baz+ is a
+TAG_Short with a payload of +42+, this structure could be represented as
+
+	TAG_Compound("foo"): 1 entries
+	{
+	   TAG_List("bar"): 1 entries of type TAG_Compound
+	   {
+	      TAG_Compound: 1 entries
+	      {
+	         TAG_Short("baz"): 42
+	      }
+	   }
+	}
+
+[[T]]
+Types
+-----
+
+'type' is the type of the leaf tag, and must be one of +TAG_Byte+,
++TAG_Short+, +TAG_Int+, +TAG_Long+, +TAG_Float+, +TAG_Double+,
++TAG_Byte_Array+, +TAG_String+, +TAG_List+, +TAG_Compound+, or
++TAG_Int_Array+.
+
+Additionally, 'type' must always be surrounded with parentheses. No whitespace
+or other text is permitted between 'type' and the parentheses.
+
+[[V]]
+Values
+------
+
+'value' is the tag's payload, and depends on 'type'. Valid 'values' are
+described below for each tag type.
+
++TAG_Byte+::
+	An integer ranging from -128 to 127.
+
++TAG_Short+::
+	An integer ranging from -32768 to 32767.
+
++TAG_Int+::
+	An integer ranging from -2147483648 to 2147483647.
+
++TAG_Long+::
+	An integer ranging from -9223372036854775808 to 9223372036854775807.
+
++TAG_Float+::
+	An IEEE 754-2008 single-precision floating point number.
+
++TAG_Double+::
+	An IEEE 754-2008 double-precision floating point number. 
+
++TAG_Byte_Array+::
+	A comma-delimited list of integers ranging from -128 to 127.
+
++TAG_String+::
+	A UTF-8 string. The string must not be wrapped in quotes or have any of
+	its characters escaped in any way.
+
++TAG_List+::
+	The type of tags contained in the list. Valid values are the same as the
+	valid values for 'type'. See the <<T,Types>> section above.
+
++TAG_Compound+::
+	For TAG_Compounds, 'value' is ignored. This is because leaf TAG_Compounds
+	are always empty.
+
++TAG_Int_Array+::
+	A comma-delimited list of integers ranging from -2147483648 to 2147483647.
+
+
+[[E]]
+Examples
+--------
+
+The +test.nbt+ example file in Markus Persson's NBT spec has the following
+contents:
+
+	TAG_Compound('hello world'): 1 entry
+	{
+		TAG_String('name'): 'Bananrama'
+	}
+
+In norbert format, this would be expressed as
+
+	hello world,name = (TAG_String) Bananrama
+
+The +bigtest.nbt+ example file from the spec
+
+
+	TAG_Compound("Level"): 11 entries
+	{
+	   TAG_Short("shortTest"): 32767
+	   TAG_Long("longTest"): 9223372036854775807
+	   TAG_Float("floatTest"): 0.49823147058486938
+	   TAG_String("stringTest"): HELLO WORLD THIS IS A TEST STRING ÅÄÖ!
+	   TAG_Int("intTest"): 2147483647
+	   TAG_Compound("nested compound test"): 2 entries
+	   {
+	      TAG_Compound("ham"): 2 entries
+	      {
+	         TAG_String("name"): Hampus
+	         TAG_Float("value"): 0.75
+	      }
+	      TAG_Compound("egg"): 2 entries
+	      {
+	         TAG_String("name"): Eggbert
+	         TAG_Float("value"): 0.5
+	      }
+	   }
+	   TAG_List("listTest (long)"): 5 entries of type TAG_Long
+	   {
+	      TAG_Long: 11
+	      TAG_Long: 12
+	      TAG_Long: 13
+	      TAG_Long: 14
+	      TAG_Long: 15
+	   }
+	   TAG_Byte("byteTest"): 127
+	   TAG_List("listTest (compound)"): 2 entries of type TAG_Compound
+	   {
+	      TAG_Compound: 2 entries
+	      {
+	         TAG_String("name"): Compound tag #0
+	         TAG_Long("created-on"): 1264099775885
+	      }
+	      TAG_Compound: 2 entries
+	      {
+	         TAG_String("name"): Compound tag #1
+	         TAG_Long("created-on"): 1264099775885
+	      }
+	   }
+	   TAG_Byte_Array("byteArrayTest (the first 1000 values of (n*n*255+n*7)%100, starting with n=0 (0, 62, 34, 16, 8, ...))"): [1000 bytes]
+	   TAG_Double("doubleTest"): 0.4931287132182315
+	}
+
+would be expressed as
+
+	Level,shortTest = (TAG_Short) 32767
+	Level,longTest = (TAG_Long) 9223372036854775807
+	Level,floatTest = (TAG_Float) 0.4982314705848694
+	Level,stringTest = (TAG_String) HELLO WORLD THIS IS A TEST STRING ÅÄÖ!
+	Level,intTest = (TAG_Int) 2147483647
+	Level,nested compound test,ham,name = (TAG_String) Hampus
+	Level,nested compound test,ham,value = (TAG_Float) 0.75
+	Level,nested compound test,egg,name = (TAG_String) Eggbert
+	Level,nested compound test,egg,value = (TAG_Float) 0.5
+	Level,listTest (long)#0 = (TAG_Long) 11
+	Level,listTest (long)#1 = (TAG_Long) 12
+	Level,listTest (long)#2 = (TAG_Long) 13
+	Level,listTest (long)#3 = (TAG_Long) 14
+	Level,listTest (long)#4 = (TAG_Long) 15
+	Level,byteTest = (TAG_Byte) 127
+	Level,listTest (compound)#0,name = (TAG_String) Compound tag #0
+	Level,listTest (compound)#0,created-on = (TAG_Long) 1264099775885
+	Level,listTest (compound)#1,name = (TAG_String) Compound tag #1
+	Level,listTest (compound)#1,created-on = (TAG_Long) 1264099775885
+	Level,byteArrayTest (the first 1000 values of (n*n*255+n*7)%100, starting with n=0 (0, 62, 34, 16, 8, ...)) = (TAG_Byte_Array) 0,62,34,16,8,10,22,44,76,18,70,32,4,86,78,80,92,14,46,88,40,2,74,56,48,50,62,84,16,58,10,72,44,26,18,20,32,54,86,28,80,42,14,96,88,90,2,24,56,98,50,12,84,66,58,60,72,94,26,68,20,82,54,36,28,30,42,64,96,38,90,52,24,6,98,0,12,34,66,8,60,22,94,76,68,70,82,4,36,78,30,92,64,46,38,40,52,74,6,48,0,62,34,16,8,10,22,44,76,18,70,32,4,86,78,80,92,14,46,88,40,2,74,56,48,50,62,84,16,58,10,72,44,26,18,20,32,54,86,28,80,42,14,96,88,90,2,24,56,98,50,12,84,66,58,60,72,94,26,68,20,82,54,36,28,30,42,64,96,38,90,52,24,6,98,0,12,34,66,8,60,22,94,76,68,70,82,4,36,78,30,92,64,46,38,40,52,74,6,48,0,62,34,16,8,10,22,44,76,18,70,32,4,86,78,80,92,14,46,88,40,2,74,56,48,50,62,84,16,58,10,72,44,26,18,20,32,54,86,28,80,42,14,96,88,90,2,24,56,98,50,12,84,66,58,60,72,94,26,68,20,82,54,36,28,30,42,64,96,38,90,52,24,6,98,0,12,34,66,8,60,22,94,76,68,70,82,4,36,78,30,92,64,46,38,40,52,74,6,48,0,62,34,16,8,10,22,44,76,18,70,32,4,86,78,80,92,14,46,88,40,2,74,56,48,50,62,84,16,58,10,72,44,26,18,20,32,54,86,28,80,42,14,96,88,90,2,24,56,98,50,12,84,66,58,60,72,94,26,68,20,82,54,36,28,30,42,64,96,38,90,52,24,6,98,0,12,34,66,8,60,22,94,76,68,70,82,4,36,78,30,92,64,46,38,40,52,74,6,48,0,62,34,16,8,10,22,44,76,18,70,32,4,86,78,80,92,14,46,88,40,2,74,56,48,50,62,84,16,58,10,72,44,26,18,20,32,54,86,28,80,42,14,96,88,90,2,24,56,98,50,12,84,66,58,60,72,94,26,68,20,82,54,36,28,30,42,64,96,38,90,52,24,6,98,0,12,34,66,8,60,22,94,76,68,70,82,4,36,78,30,92,64,46,38,40,52,74,6,48,0,62,34,16,8,10,22,44,76,18,70,32,4,86,78,80,92,14,46,88,40,2,74,56,48,50,62,84,16,58,10,72,44,26,18,20,32,54,86,28,80,42,14,96,88,90,2,24,56,98,50,12,84,66,58,60,72,94,26,68,20,82,54,36,28,30,42,64,96,38,90,52,24,6,98,0,12,34,66,8,60,22,94,76,68,70,82,4,36,78,30,92,64,46,38,40,52,74,6,48,0,62,34,16,8,10,22,44,76,18,70,32,4,86,78,80,92,14,46,88,40,2,74,56,48,50,62,84,16,58,10,72,44,26,18,20,32,54,86,28,80,42,14,96,88,90,2,24,56,98,50,12,84,66,58,60,72,94,26,68,20,82,54,36,28,30,42,64,96,38,90,52,24,6,98,0,12,34,66,8,60,22,94,76,68,70,82,4,36,78,30,92,64,46,38,40,52,74,6,48,0,62,34,16,8,10,22,44,76,18,70,32,4,86,78,80,92,14,46,88,40,2,74,56,48,50,62,84,16,58,10,72,44,26,18,20,32,54,86,28,80,42,14,96,88,90,2,24,56,98,50,12,84,66,58,60,72,94,26,68,20,82,54,36,28,30,42,64,96,38,90,52,24,6,98,0,12,34,66,8,60,22,94,76,68,70,82,4,36,78,30,92,64,46,38,40,52,74,6,48,0,62,34,16,8,10,22,44,76,18,70,32,4,86,78,80,92,14,46,88,40,2,74,56,48,50,62,84,16,58,10,72,44,26,18,20,32,54,86,28,80,42,14,96,88,90,2,24,56,98,50,12,84,66,58,60,72,94,26,68,20,82,54,36,28,30,42,64,96,38,90,52,24,6,98,0,12,34,66,8,60,22,94,76,68,70,82,4,36,78,30,92,64,46,38,40,52,74,6,48,0,62,34,16,8,10,22,44,76,18,70,32,4,86,78,80,92,14,46,88,40,2,74,56,48,50,62,84,16,58,10,72,44,26,18,20,32,54,86,28,80,42,14,96,88,90,2,24,56,98,50,12,84,66,58,60,72,94,26,68,20,82,54,36,28,30,42,64,96,38,90,52,24,6,98,0,12,34,66,8,60,22,94,76,68,70,82,4,36,78,30,92,64,46,38,40,52,74,6,48
+	Level,doubleTest = (TAG_Double) 0.4931287132182315
+
+WARNING: Due to the commas and equals sign in +Level,byteArrayTest+, this is
+not a valid norbert file. Using it with tools that implement the norbert
+format may yield unexpected results.
+
+NOTE: The +Level,byteArrayTest+ tag might be split onto multiple lines
+depending on the format you are reading this documentation in. In a properly
+formatted norbert file, it should be on a single line.
+
+See Also
+--------
+
+linkman:norbert[1], linkman:vinbt[1], linkman:nbt[5]
+
+include::footer.txt[]
+
+/////
+vim: set syntax=asciidoc ts=4 sw=4 noet:
+/////

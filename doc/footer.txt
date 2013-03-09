@@ -1,0 +1,13 @@
+The norbert project page is located at http://dmbuce.github.com/norbert/.
+
+Authors
+-------
+
+* DMBuce <dmbuce@gmail.com>
+
+To see a full list of contributors, use `git shortlog -s` in the norbert
+https://github.com/DMBuce/norbert[git repository].
+
+/////
+vim: set syntax=asciidoc ts=4 sw=4 noet:
+/////

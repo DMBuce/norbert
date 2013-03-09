@@ -1,13 +1,13 @@
 norbert.py README
 =================
 
-WARNING: This is new and probably unstable software.
-Expect breakages until this notice is removed.
+WARNING: This is experimental software. Expect breakages until this notice is
+removed.
 
 **N**or**B**er**T** is a command line viewer/editor for the 
 http://web.archive.org/web/20110723210920/http://www.minecraft.net/docs/NBT.txt[NBT]
 format that minecraft saves its data to. It can be used to read or modify
-level.dat or player.dat files, among other things.
+files such as +level.dat+, +player.dat+, +map_N.dat+, and so on.
 
 Requirements
 ------------
@@ -23,52 +23,9 @@ and make sure it's executable
 
 	# install -m755 norbert.py /usr/local/bin/norbert
 
-Usage
------
+Use the same procedure to install vinbt
 
-WARNING: Do NOT use the `-o` option while a file is being used by Minecraft
-or another program. You could corrupt your save!
-
-Get usage info:
-
-	$ norbert --help
-
-View +level.dat+:
-
-	$ norbert -r
-
-Same, but use +level.dat+ from another directory:
-
-	$ norbert -r -i /path/to/level.dat
-
-View +player.dat+:
-
-	$ norbert -r -i player.dat
-
-View +GameType+ tag in +level.dat+:
-
-	$ norbert Data,GameType
-
-Set game mode to Creative:
-
-	$ norbert -o level.dat Data.GameType=1
-
-Limitations
------------
-
-Norbert can't:
-
-* Create new tags
-* Change the data type of existing tags
-
-Bugs
-----
-
-Known bugs. Fixes coming Soon(TM):
-
-* Doesn't support non-gzipped NBT files
-* Doesn't support Region files
-* Doesn't always play nice with stdin/stdout
+	# install -m755 vinbt /usr/local/bin/vinbt
 
 Copyright
 ---------

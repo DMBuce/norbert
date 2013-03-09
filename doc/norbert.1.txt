@@ -1,0 +1,141 @@
+norbert(1)
+==========
+
+Name
+----
+norbert - command-line NBT editor
+
+Synopsis
+--------
+'norbert' [options] [tag[=value]] [tag2[=value2]] ...
+
+Description
+-----------
+Norbert edits or displays an NBT file. With no arguments, it opens 'level.dat'
+in the working directory and prints its contents to stdout in a human-readable
+format.
+
+'tag' is the name of a tag. Its format is described in the *Names*
+section of linkman:norbert[5]. If 'value' is given, it is used to set the
+payload of 'tag'. Valid 'values' are described in the *Values* section of
+linkman:norbert[5].
+
+Norbert is written in Python using Thomas Woolford's
+https://github.com/twoolie/NBT[NBT library].
+
+Options
+-------
+
+*--version*::
+	Display version number and exit.
+
+*-h, --help*::
+	Display syntax and exit.
+
+*-f, --input-file* <file>::
+	The file to read. Default is +level.dat+.
++
+Reading from stdin is currently not supported.
+
+*-o, --output-file* <file>::
+	The file to write to. If not provided, any changes made with +'tag'='value'+
+	arguments won't be written to disk.
++
+WARNING: This option will overwrite the data in 'file'. If 'file' is being
+used by minecraft, or if norbert encounters an error, 'file' can become
+corrupt. Use this option with caution and make backups if necessary.
+
+*-p, --print-format* <format>::
+	Format to print output in. Valid values are +human+, +nbt-txt+ and
+	+norbert+, and are described below.
++
+* *human*: An indented, human-readable format. This is the default.
+* *nbt-txt*: A text format similar to the one used in the original NBT spec.
+* *norbert*: A text format designed to be easily parsed by command-line tools.
+See linkman:norbert[5] for details.
+
+*-i, --input-format* <format>::
+	Format of the input file. Valid values are +nbt+ and +norbert+, and are
+	described below.
++
+* *nbt*: The NBT format. This is the default.
+* *norbert*: A text format designed to be easily parsed by command-line tools.
+See linkman:norbert[5] for details.
+
+*-d, --depth* <depth>::
+	Set the maximum recursion depth when printing. Use 0 for no
+	limit. Default is 8.
+
+*-s, --separator* <separator>::
+	Set the tag separators for norbert-formatted input, and output, and
+	+'tag'='value'+ arguments.
+	The argument to this option must be a string of one or two characters. The
+	first character is used to delimit tag names, and the second character is
+	used to delimit list indices. Default is +,#+.
+
+Examples
+--------
+
+norbert --help::
+	Get usage info.
+
+norbert::
+	View +level.dat+.
+
+norbert -f /path/to/level.dat::
+	Same, but use +level.dat+ from another directory.
+
+norbert -f player.dat::
+	View +player.dat+.
+
+norbert Data,GameType::
+	View +GameType+ tag in +level.dat+.
+
+norbert -o level.dat Data,GameType=1::
+	Set game mode to Creative. Warning: Back up +level.dat+ first!
+
+norbert -d 0 -f player.dat -p norbert >player.dat.norbert::
+	Save +player.dat+ in linkman:norbert[5] format.
+
+norbert -d 0 -f player.dat.norbert -i norbert -o player.dat::
+	Convert +player.dat.norbert+ from norbert to NBT and save it as
+	+player.dat+.
+
+Limitations
+-----------
+
+When parsing a norbert-formatted file, tags have the following limitations.
+
+* Tags can not have an equals sign (+=+) in their 'name'
+* Tags can not have either of the separators (+,+ and +#+ by default) in their 'name'
+* The 'name' of the root tag can not start with whitespace
+* The 'name' of the leaf tag can not end with whitespace
+* The 'value' of TAG_Strings can not start or end with whitespace
+
+Any attempt to parse tags in norbert files with these properties will yield
+unexpected results. For more info on the norbert file format, see
+linkman:norbert[5].
+
+Bugs
+----
+
+Known bugs. Fixes coming Soon(TM):
+
+* Doesn't support non-gzipped NBT files
+* Doesn't support Region files
+* Doesn't always play nice with stdin/stdout
+
+Report any and all bugs to the norbert
+https://github.com/DMBuce/norbert/issues[issue tracker] with as much detail as
+possible.
+
+See Also
+--------
+
+linkman:norbert[5], linkman:vinbt[1]
+
+include::footer.txt[]
+
+/////
+vim: set syntax=asciidoc ts=4 sw=4 noet:
+/////
