@@ -13,7 +13,7 @@ MAN5PAGES := norbert.5
 MANPAGES  := $(MAN1PAGES) $(MAN5PAGES)
 MAN1PAGES_INSTALL := $(MAN1PAGES:doc/%=$(DESTDIR)$(man1dir)/%)
 MAN5PAGES_INSTALL := $(MAN5PAGES:doc/%=$(DESTDIR)$(man5dir)/%)
-TXTFILES  := norbert.1.txt norbert.5.txt
+TXTFILES  := norbert.1.txt norbert.5.txt index.txt
 HTMLPAGES := $(TXTFILES:.txt=.html)
 
 #TGT_INSTALL := $(TGT_INSTALL) doc-install

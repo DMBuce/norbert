@@ -1,0 +1,72 @@
+Norbert Home Page
+==================
+
+A command-line NBT editor.
+
+WARNING: This is experimental software. Expect breakages until this notice is
+removed.
+
+Overview
+--------
+**N**or**B**er**T** is a command-line utility for editing and displaying
+http://web.archive.org/web/20110723210920/http://www.minecraft.net/docs/NBT.txt[NBT]
+files. It can be used to read or modify files such as +level.dat+,
++player.dat+, +map_N.dat+, and so on.
+
+Norbert is also the name of a file format used to represent NBT data. The goal
+of the format is to be easily parsed by text-based command line tools.
+
+vinbt is a script that can be used to edit an NBT file using a text
+editor such as vi.
+
+Install
+-------
+
+Before you attempt to install norbert, make sure you have its dependencies:
+* Python 2 or 3
+* Thomas Woolford's https://github.com/twoolie/NBT[NBT library]
+
+To install, simply rename norbert.py to norbert, place it in your path,
+and make sure it's executable
+
+    # install -m755 norbert.py /usr/local/bin/norbert
+
+Use the same procedure to install vinbt
+
+    # install -m755 vinbt /usr/local/bin/vinbt
+
+Documentation
+-------------
+The full documentation for norbert is kept in
+link:http://www.methods.co.nz/asciidoc/[AsciiDoc] format under the +doc/+
+directory in the source distribution.
+
+Man Pages
+~~~~~~~~~
+There are several man pages available for norbert and its custom file format.
+
+* linkman:norbert[1]
+* linkman:norbert[5]
+* linkman:vinbt[1]
+
+Development
+-----------
+
+Changelog
+~~~~~~~~~
+To view the full changelog for all releases, use `git tag -l -n100` in the
+link:{REPO}[GitHub repository].
+
+Bugs
+----
+If you find a bug, you can submit it to the
+link:https://github.com/DMBuce/norbert/issues[issues tracker].
+
+Copyright
+---------
+Norbert is Copyright (C) 2012-2013 DMBuce <dmbuce@gmail.com>
+and is licensed through the GNU General Public License, version 2 or later.
+
+/////
+vim: set syntax=asciidoc ts=4 sw=4 noet:
+/////
