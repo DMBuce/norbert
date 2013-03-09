@@ -13,7 +13,7 @@ http://web.archive.org/web/20110723210920/http://www.minecraft.net/docs/NBT.txt[
 files. It can be used to read or modify Minecraft files such as +level.dat+,
 +player.dat+, +map_N.dat+, and so on.
 
-Norbert is also the name of a file format used to represent NBT data. The goal
+norbert is also the name of a file format used to represent NBT data. The goal
 of the format is to be easily parsed by text-based command line tools.
 
 vinbt is a script that can be used to edit an NBT file using a text
