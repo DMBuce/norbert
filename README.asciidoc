@@ -20,7 +20,7 @@ Documentation
 -------------
 The full documentation for norbert is kept in
 link:http://www.methods.co.nz/asciidoc/[AsciiDoc] format under the +doc/+
-directory in the source distribution. It can be viewed at https://dmbuce.github.com/clicraft.
+directory in the source distribution. It can be viewed at https://dmbuce.github.com/norbert.
 
 Basic documentation can be found in these files:
 
