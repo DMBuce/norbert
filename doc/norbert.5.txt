@@ -19,7 +19,7 @@ NBT data. The goal of the format is to be easily parsed by text-based command
 line tools. Each line in a norbert-formatted file represents a single leaf
 tag, and has the form
 
-	'fullname' = ('type') 'value'
++'fullname' = ('type') 'value'+
 
 'fullname' is constructed from the leaf tag's name and the names of its
 ancestors. 'type' is the tag type of the leaf tag. 'value' is the leaf tag's
