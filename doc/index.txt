@@ -41,6 +41,10 @@ Before you attempt to install norbert, make sure you have its dependencies:
 * Python 2 or 3
 * Thomas Woolford's https://github.com/twoolie/NBT[NBT library]
 
+To download, grab the repo with git
+
+	$ git clone https://github.com/DMBuce/norbert.git
+
 To install, simply rename norbert.py to norbert, place it in your path,
 and make sure it's executable
 
