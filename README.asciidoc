@@ -1,3 +1,6 @@
+IMPORTANT: The devel branch of norbert is no longer maintained. Please use the
+master branch instead.
+
 A command-line NBT editor.
 
 WARNING: This is experimental software. Expect breakages until this notice is
