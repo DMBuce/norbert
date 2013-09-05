@@ -1,0 +1,57 @@
+vinbt(1)
+========
+
+Name
+----
+vinbt - Edit an NBT file using a text editor
+
+Synopsis
+--------
+'vinbt' <file>
+
+Description
+-----------
+Vinbt is a script that can be used to edit an NBT 'file' using a text editor
+such as vi. It uses linkman:norbert[1] to convert NBT data to text and back.
+
+Options
+-------
+
+*-h, --help*::
+	Display syntax and exit.
+
+Environment Variables
+---------------------
+
+*DISPLAY, VISUAL, EDITOR*::
+	If +$DISPLAY+ is set, `vinbt` uses +$VISUAL+ (if present) to edit the
+	file. Otherwise, it uses +$EDITOR+ if present, or `vi` if not.
+
+*NORBERT*::
+	The path to linkman:norbert[1]. If +$NORBERT+ is empty, `vinbt` searches
+	for `norbert` and `norbert.py` in +$PATH+, +$HOME/bin+, and +$PWD+, in
+	that order.
+
+*TMPDIR*::
+	`vinbt` temporarily stores files converted to linkman:norbert[5] format
+	in +$TMPDIR+ (+/tmp+ by default) while editing them.
+
+Examples
+--------
+
+norbert --help::
+	Get usage info.
+
+vinbt level.dat::
+	Edit +level.dat+.
+
+See Also
+--------
+
+linkman:norbert[1], linkman:norbert[5]
+
+include::footer.txt[]
+
+/////
+vim: set syntax=asciidoc ts=4 sw=4 noet:
+/////
