@@ -385,12 +385,7 @@ def norbert(nbtfile, options, arg):
         return set_tag(tag, value)
 
 def split_arg(namevaluepair, sep):
-    namevalue = namevaluepair.split(sep)
-    name = namevalue.pop(0)
-    if len(namevalue) == 0:
-        value = None
-    else:
-        value = sep.join(namevalue)
+    name, type, value = norbert_split_line(namevaluepair, sep)
     return (name, value)
 
 def get_tag(tag, fullname, sep=DEFAULT_SEP):
