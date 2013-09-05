@@ -27,7 +27,7 @@ VERSION = "0.3"
 DEFAULT_MAXDEPTH = 8
 DEFAULT_PRINTFORMAT = "human"
 DEFAULT_INPUTFORMAT = "nbt"
-DEFAULT_SEP = ",#"
+DEFAULT_SEP = ",#="
 
 # errors
 GENERAL_ERROR = 1
@@ -119,10 +119,11 @@ def main():
                       help="Set the tag separator for norbert-formatted " \
                            "arguments, input, and output. " \
                            "The argument to this option must be " \
-                           "a string of one or two characters. " \
+                           "a string between 1 and 3 characters long. " \
                            "The first character is used to delimit tag " \
-                           "names, and the second character is used to " \
-                           "delimit list items. Default is '" + DEFAULT_SEP + \
+                           "names, the second character is used to " \
+                           "delimit list items, and the third character is used to " \
+                           "separate names and values. Default is '" + DEFAULT_SEP + \
                            "'")
     #parser.add_option("-c", "--create",
 
@@ -133,7 +134,7 @@ def main():
         args.append("")
 
     if len(options.sep) == 0 or len(options.sep) > len(DEFAULT_SEP):
-        err("Argument to -s must be 1 or 2 characters: " + options.sep)
+        err("Argument to -s must be between 1 and " + str(len(DEFAULT_SEP)) + " characters: " + options.sep)
         return INVALID_OPTION
     else:
         options.sep += DEFAULT_SEP[ len(options.sep) : len(DEFAULT_SEP) ]
@@ -220,7 +221,7 @@ readers["norbert"] = norbert_read_file
 #
 def norbert_parse_line(line, sep=DEFAULT_SEP):
     line = line.strip()
-    name, tagtype, value = norbert_split_line(line)
+    name, tagtype, value = norbert_split_line(line, sep[2])
 
     # validate user input
     if tagtype is None:
@@ -260,17 +261,17 @@ def norbert_parse_line(line, sep=DEFAULT_SEP):
 #
 # if type or value can't be determined, they are returned as None
 #
-def norbert_split_line(nametypevaluetriplet):
+def norbert_split_line(nametypevaluetriplet, sep):
     # initialize return values
     tagtype = None
     value = None
     name = None
 
     # parse name
-    nametypevalue = nametypevaluetriplet.split('=')
+    nametypevalue = nametypevaluetriplet.split(sep)
     name = nametypevalue.pop(0)
     name = name.strip()
-    nametypevalue = '='.join(nametypevalue)
+    nametypevalue = sep.join(nametypevalue)
 
     # parse tagtype
     nametypevalue = nametypevalue.split(')')
@@ -364,7 +365,7 @@ def norbert_add_child(tag, i, child):
     return child
 
 def norbert(nbtfile, options, arg):
-    name, value = split_arg(arg)
+    name, value = split_arg(arg, options.sep[2])
 
     tag = get_tag(nbtfile, name, sep=options.sep)
     if tag is None:
@@ -379,13 +380,13 @@ def norbert(nbtfile, options, arg):
         # set the tag
         return set_tag(tag, value)
 
-def split_arg(namevaluepair):
-    namevalue = namevaluepair.split('=')
+def split_arg(namevaluepair, sep):
+    namevalue = namevaluepair.split(sep)
     name = namevalue.pop(0)
     if len(namevalue) == 0:
         value = None
     else:
-        value = '='.join(namevalue)
+        value = sep.join(namevalue)
     return (name, value)
 
 def get_tag(tag, fullname, sep=DEFAULT_SEP):
@@ -630,7 +631,7 @@ def norbert_print_pre(tag):
         else:
             value = '(' + tag_types[tag.id] + ') ' + tag.valuestr()
 
-        print(tag.fullname + ' = ' + value)
+        print(tag.fullname + ' ' + sep[2] + ' ' + value)
 
 norbert_print_pre.sep = DEFAULT_SEP
 
