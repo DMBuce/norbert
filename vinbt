@@ -58,7 +58,7 @@ which_norbert() {
 	local norbert dir PATHORIG
 	PATHORIG="$PATH"
 
-	if [[ -x "$NORBERT" ]]; then
+	if [[ "$NORBERT" != "" ]]; then
 		echo "$NORBERT"
 		return 0
 	fi
