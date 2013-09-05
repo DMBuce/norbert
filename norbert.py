@@ -23,7 +23,7 @@ import optparse
 import sys
 from nbt import nbt
 
-VERSION = "0.3"
+VERSION = "0.4"
 DEFAULT_MAXDEPTH = 8
 DEFAULT_PRINTFORMAT = "human"
 DEFAULT_INPUTFORMAT = "nbt"
