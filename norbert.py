@@ -275,17 +275,19 @@ def norbert_split_line(nametypevaluetriplet, sep):
     name = name.strip()
     nametypevalue = sep.join(nametypevalue)
 
-    # parse tagtype
-    nametypevalue = nametypevalue.split(')')
-    try:
-        tagtype = nametypevalue.pop(0)
-        tagtype = tagtype.lstrip()
-        tagtype = tagtype.lstrip('(')
-        tagtype = tag_types[tagtype] # KeyError
-    except:
-        tagtype = None
+    # check if tagtype is given
+    if nametypevalue.lstrip().startswith('(TAG_'):
+        # parse tagtype
+        nametypevalue = nametypevalue.split(')')
+        try:
+            tagtype = nametypevalue.pop(0)
+            tagtype = tagtype.lstrip()
+            tagtype = tagtype.lstrip('(')
+            tagtype = tag_types[tagtype] # KeyError
+        except:
+            tagtype = None
 
-    nametypevalue = ')'.join(nametypevalue)
+        nametypevalue = ')'.join(nametypevalue)
         
 
     # parse value
