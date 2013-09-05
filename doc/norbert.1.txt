@@ -7,7 +7,7 @@ norbert - command-line NBT editor
 
 Synopsis
 --------
-'norbert' [options] [tag[=value]] [tag2[=value2]] ...
+'norbert' [options] [tag] [tag2] [tag3] ...
 
 Description
 -----------
@@ -15,10 +15,13 @@ Norbert edits or displays an NBT file. With no arguments, it opens 'level.dat'
 in the working directory and prints its contents to stdout in a human-readable
 format.
 
-'tag' is the name of a tag. Its format is described in the *Names*
-section of linkman:norbert[5]. If 'value' is given, it is used to set the
-payload of 'tag'. Valid 'values' are described in the *Values* section of
-linkman:norbert[5].
+'tag' is given in linkman:norbert[5] format, with the tag type and value
+optionally omitted. With the default arguments, it has the form +name+ or
++name=[[(type)]value]+. In the first form, the tag corresponding to 'name' is
+printed. In the second form, '(type)' is ignored and the tag is set to the
+given 'value'. No changes are made on disk, however, unless +-o+ is used. See
+linkman:norbert[5], sections *Names* and *Values*, for more detailed
+descriptions of the format of 'name' and 'value'.
 
 Norbert is written in Python using Thomas Woolford's
 https://github.com/twoolie/NBT[NBT library].
@@ -38,7 +41,7 @@ Options
 Reading from stdin is currently not supported.
 
 *-o, --output-file* <file>::
-	The file to write to. If not provided, any changes made with +'tag'='value'+
+	The file to write to. If not provided, any changes made with +'tag'+
 	arguments won't be written to disk.
 +
 WARNING: This option will overwrite the data in 'file'. If 'file' is being
@@ -67,11 +70,11 @@ See linkman:norbert[5] for details.
 	limit. Default is 8.
 
 *-s, --separator* <separator>::
-	Set the tag separators for norbert-formatted input, and output, and
-	+'tag'='value'+ arguments.
-	The argument to this option must be a string of one or two characters. The
-	first character is used to delimit tag names, and the second character is
-	used to delimit list indices. Default is +,#+.
+	Set the tag separators for norbert-formatted arguments, input, and output.
+	The argument to this option must be a string between 1 and 3 characters
+	long. The first character is used to delimit tag names, the second
+	character is used to delimit list indices, and the third character is used
+	to separate names and values. Default is +/#=+.
 
 Examples
 --------
@@ -88,10 +91,10 @@ norbert -f /path/to/level.dat::
 norbert -f player.dat::
 	View +player.dat+.
 
-norbert Data,GameType::
+norbert Data/GameType::
 	View +GameType+ tag in +level.dat+.
 
-norbert -o level.dat Data,GameType=1::
+norbert -o level.dat Data/GameType=1::
 	Set game mode to Creative. Warning: Back up +level.dat+ first!
 
 norbert -d 0 -f player.dat -p norbert >player.dat.norbert::
@@ -106,8 +109,7 @@ Limitations
 
 When parsing a norbert-formatted file, tags have the following limitations.
 
-* Tags can not have an equals sign (+=+) in their 'name'
-* Tags can not have either of the separators (+,+ and +#+ by default) in their 'name'
+* Tags can not have any of the separators (+/+, +#+ and +=+ by default) in their 'name'
 * The 'name' of the root tag can not start with whitespace
 * The 'name' of the leaf tag can not end with whitespace
 * The 'value' of TAG_Strings can not start or end with whitespace

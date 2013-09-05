@@ -75,13 +75,15 @@ complex_tag_types = [
 ]
 
 def main():
-    usage = "%prog [options] [tag[=value]] [tag2[=value2]] ..." #TODO: man page
+    usage = "%prog [options] [tag] [tag2] [tag3] ..." #TODO: man page
     desc  = "Edits or displays an NBT file. " \
-            "Nested <tag>s can be referenced " \
-            "by separating their names with a ',' character. " \
-            "List items are referenced by their place in the list. " \
-            "For example, \"Inventory,1,id\" refers to the block id of the " \
-            "first inventory item in a typical Minecraft player.dat file."
+            "<tag>s are given in norbert(5) format, with the tag type and value " \
+            "optionally omitted. With the default arguments, it has the form <name> or " \
+            "<name>=[[(type)]value]. In the first form, the tag corresponding to <name> is " \
+            "printed. In the second form, <type> is ignored and the tag is set to the " \
+            "given <value>. No changes are made on disk, however, unless '-o' is used. See " \
+            "norbert(5), sections 'Names' and 'Values', for more detailed " \
+            "descriptions of the format of <name> and <value>."
     parser = optparse.OptionParser(version=VERSION, usage=usage,
                                    description=desc)
     parser.add_option("-f", "--input-file",
@@ -122,7 +124,7 @@ def main():
                            "a string between 1 and 3 characters long. " \
                            "The first character is used to delimit tag " \
                            "names, the second character is used to " \
-                           "delimit list items, and the third character is used to " \
+                           "delimit list indices, and the third character is used to " \
                            "separate names and values. Default is '" + DEFAULT_SEP + \
                            "'")
     #parser.add_option("-c", "--create",
