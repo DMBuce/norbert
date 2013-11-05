@@ -27,18 +27,22 @@ USAGE="Usage: $PROG <file>
 
 # print message to stdout
 msg() {
-	printf "$1\n"
+	local message="$1"
+	shift
+	printf "$message\n" "$@"
 }
 
 # print warning to stderr
 warn() {
-	printf "$1\n" >&2
+	local message="$1"
+	shift
+	printf "$PROG: $message\n" "$@" >&2
 }
 
 # print error to stderr and quit
 die() {
-	warn "$1"
-	exit "${2-1}"
+	warn "$@"
+	exit 1
 }
 
 # append dir to PATH
@@ -74,7 +78,7 @@ which_norbert() {
 		fi
 	done
 
-	die "$PROG: no norbert in ($PATH)"
+	die "no norbert in (%s)" "$PATH"
 }
 
 # find a text editor
@@ -90,12 +94,12 @@ which_editor() {
 
 # print usage and quit if --help given
 case "$1" in "-h"|"--help"|"")
-	msg "$USAGE"
+	msg "%s" "$USAGE"
 	exit
 esac
 
 if [[ "$#" != 1 ]]; then
-	die "$USAGE"
+	die "Too many arguments\n%s" "$USAGE"
 fi
 
 editor="$(which_editor)"
@@ -112,16 +116,16 @@ tmpfileorig="$(<"$tmpfile")"
 $editor "$tmpfile"
 
 if diff -q "$tmpfile" <(echo "$tmpfileorig") >/dev/null; then
-	warn "$PROG: no changes made"
-	warn "$PROG: $file unchanged"
+	warn "no changes made"
+	warn "%s unchanged" "$file"
 else
-	warn "$PROG: changes made"
-	warn "$PROG: writing changes to $file"
+	warn "changes made"
+	warn "writing changes to %s" "$file"
 	if ! $norbert -d 0 -i norbert -f "$tmpfile" -o "$file" >/dev/null; then
-		warn "$PROG: error writing changes"
+		warn "error writing changes"
 		savefile="$(mktemp "vinbt-$(basename "$file").norbert.XXXXXXXXXX")" \
 			|| exit $?
-		warn "$PROG: saving as $savefile"
+		warn "saving as %s" "$savefile"
 		cp "$tmpfile" "$savefile"
 	fi
 fi
