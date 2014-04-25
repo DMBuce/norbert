@@ -22,6 +22,7 @@
 import optparse
 import sys
 from nbt import nbt
+import codecs
 
 VERSION = "0.4"
 DEFAULT_MAXDEPTH = 8
@@ -295,7 +296,7 @@ def norbert_split_line(nametypevaluetriplet, sep):
     try:
         if tagtype == nbt.TAG_STRING \
           or ( tagtype != nbt.TAG_COMPOUND and nametypevalue != "" ):
-            value = nametypevalue
+            value = codecs.getdecoder("unicode_escape")(nametypevalue)[0]
         # else value is None
     except:
         value = None
@@ -628,7 +629,8 @@ def norbert_print_pre(tag):
         elif tag.id == nbt.TAG_LIST:
             value = '(' + tag_types[tag.id] + ') ' + tag_types[tag.tagID]
         else:
-            value = '(' + tag_types[tag.id] + ') ' + tag.valuestr()
+            value = '(' + tag_types[tag.id] + ') ' \
+                    + codecs.getencoder("unicode_escape")(tag.valuestr())[0].decode("utf-8")
 
         print(tag.fullname + ' ' + sep[2] + ' ' + value)
 
