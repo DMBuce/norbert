@@ -11,10 +11,13 @@ man9dir       = $(mandir)/man9
 MAN1PAGES := norbert.1 vinbt.1
 MAN5PAGES := norbert.5
 MANPAGES  := $(MAN1PAGES) $(MAN5PAGES)
-MAN1PAGES_INSTALL := $(MAN1PAGES:doc/%=$(DESTDIR)$(man1dir)/%)
-MAN5PAGES_INSTALL := $(MAN5PAGES:doc/%=$(DESTDIR)$(man5dir)/%)
+MAN1PAGES_INSTALL := $(MAN1PAGES:%=$(DESTDIR)$(man1dir)/%)
+MAN5PAGES_INSTALL := $(MAN5PAGES:%=$(DESTDIR)$(man5dir)/%)
 TXTFILES  := norbert.1.txt norbert.5.txt vinbt.1.txt index.txt
 HTMLPAGES := $(TXTFILES:.txt=.html)
+
+INSTALL      = install -c
+INSTALL_DATA = ${INSTALL} -m 644
 
 #TGT_INSTALL := $(TGT_INSTALL) doc-install
 #CLEAN       := $(MANPAGES) $(HTMLPAGES)
@@ -24,7 +27,7 @@ HTMLPAGES := $(TXTFILES:.txt=.html)
 #             $(MANPAGES) \
 #             $(HTMLPAGES)
 
-INSTALLDIRS := $(INSTALLDIRS) $(DESTDIR)$(man1dir) $(DESTDIR)$(man5dir)
+INSTALLDIRS := $(DESTDIR)$(man1dir) $(DESTDIR)$(man5dir)
 
 UNINSTALL := $(UNINSTALL) \
              $(MAN1PAGES_INSTALL) \
@@ -43,10 +46,13 @@ all: doc
 
 # install man pages
 
-$(DESTDIR)$(man1dir)/%: doc/%
+$(INSTALLDIRS):
+	$(INSTALL) -d $@
+
+$(DESTDIR)$(man1dir)/%: % $(INSTALLDIRS)
 	- $(INSTALL_DATA) $< $@
 
-$(DESTDIR)$(man5dir)/%: doc/%
+$(DESTDIR)$(man5dir)/%: % $(INSTALLDIRS)
 	- $(INSTALL_DATA) $< $@
 
 
