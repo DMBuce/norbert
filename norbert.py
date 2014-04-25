@@ -24,7 +24,7 @@ import sys
 from nbt import nbt
 import codecs
 
-VERSION = "0.4"
+VERSION = "0.5"
 DEFAULT_MAXDEPTH = 8
 DEFAULT_PRINTFORMAT = "human"
 DEFAULT_INPUTFORMAT = "nbt"
