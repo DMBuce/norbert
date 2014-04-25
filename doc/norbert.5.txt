@@ -106,8 +106,9 @@ described below for each tag type.
 	A comma-delimited list of integers ranging from -128 to 127.
 
 +TAG_String+::
-	A UTF-8 string. The string must not be wrapped in quotes or have any of
-	its characters escaped in any way.
+	A UTF-8 string. The string must not be wrapped in quotes, but may have
+	escape sequences for special characters such as tabs, newlines, and
+	unicode characters.
 
 +TAG_List+::
 	The type of tags contained in the list. Valid values are the same as the
