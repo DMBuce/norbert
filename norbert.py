@@ -20,6 +20,7 @@
 #
 
 import norbert
+import sys
 
-norbert.main()
+sys.exit(norbert.main())
 
