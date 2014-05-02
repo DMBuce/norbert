@@ -19,6 +19,9 @@
 #   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 
+__all__ = [ "exceptions" ]
+from . import *
+
 import optparse
 import sys
 from nbt import nbt
@@ -29,15 +32,6 @@ DEFAULT_MAXDEPTH = 8
 DEFAULT_PRINTFORMAT = "human"
 DEFAULT_INPUTFORMAT = "nbt"
 DEFAULT_SEP = "/#="
-
-# errors
-GENERAL_ERROR = 1
-INVALID_OPTION = 2
-TAG_NOT_FOUND = 4
-TAG_NOT_IMPLEMENTED = 5
-TAG_CONVERSION_ERROR = 6
-INVALID_VALUE = 7
-INVALID_TYPE = 8
 
 formatters = {}
 readers = {}
@@ -75,7 +69,7 @@ complex_tag_types = [
     nbt.TAG_COMPOUND
 ]
 
-def main():
+def parse_args():
     usage = "%prog [options] [tag] [tag2] [tag3] ..." #TODO: man page
     desc  = "Edits or displays an NBT file. " \
             "<tag>s are given in norbert(5) format, with the tag type and value " \
@@ -137,16 +131,31 @@ def main():
         args.append("")
 
     if len(options.sep) == 0 or len(options.sep) > len(DEFAULT_SEP):
-        err("Argument to -s must be between 1 and " + str(len(DEFAULT_SEP)) + " characters: " + options.sep)
-        return INVALID_OPTION
+        raise exceptions.InvalidOptionError(
+            "-s",
+            "Must be between 1 and %s characters" % str(len(DEFAULT_SEP)),
+            options.sep
+        )
     else:
         options.sep += DEFAULT_SEP[ len(options.sep) : len(DEFAULT_SEP) ]
         norbert_print_pre.sep = options.sep
 
     # validate input format
     if options.format not in formatters:
-        err("Unknown format: " + options.format)
-        return INVALID_OPTION
+        raise exceptions.InvalidOptionError(
+            "-p",
+            "Unknown format",
+            options.format
+        )
+
+    return (options, args)
+
+def main():
+    try:
+        (options, args) = parse_args()
+    except exceptions.InvalidOptionError as e:
+        err(e.strerror)
+        return e.errno
 
     # open file
     try:
@@ -188,7 +197,7 @@ def read_file(options, args):
             e.strerror += ": '" + options.infile + "'"
 
         if e.errno is None or e.errno == 0:
-            e.errno = GENERAL_ERROR
+            e.errno = exceptions.GENERAL_ERROR
 
         raise e
 
@@ -229,10 +238,10 @@ def norbert_parse_line(line, sep=DEFAULT_SEP):
     # validate user input
     if tagtype is None:
         err("Invalid or missing tag type: " + line)
-        raise IOError(INVALID_TYPE, "Not a norbert file")
+        raise IOError(exceptions.INVALID_TYPE, "Not a norbert file")
     elif tagtype != nbt.TAG_COMPOUND and value is None:
         err("Tag value not found: " + line)
-        raise IOError(INVALID_VALUE, "Not a norbert file")
+        raise IOError(exceptions.INVALID_VALUE, "Not a norbert file")
 
     # get the list of names/indexes
     names = norbert_split_name(name, sep)
@@ -375,7 +384,7 @@ def norbert(nbtfile, options, arg):
     tag = get_tag(nbtfile, name, sep=options.sep)
     if tag is None:
         err("Tag not found: " + name)
-        return TAG_NOT_FOUND
+        return exceptions.TAG_NOT_FOUND
 
     if value == None:
         # print the tag and its subtags
@@ -452,10 +461,10 @@ def set_tag(tag, value):
             tag.value = value
         else:
             err("Writing for " + tag_types[tag.id] + " not implemented.")
-            return TAG_NOT_IMPLEMENTED
+            return exceptions.TAG_NOT_IMPLEMENTED
     except ValueError as e:
         err("Couldn't convert " + value + " to " + tag_types[tag.id] + '.')
-        return TAG_CONVERSION_ERROR
+        return exceptions.TAG_CONVERSION_ERROR
 
     return 0
 
