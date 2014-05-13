@@ -152,14 +152,13 @@ def parse_args():
 
 def main():
     try:
+        # parse and validate arguments
         (options, args) = parse_args()
+        # open file
+        nbtfile = read_file(options, args)
     except exceptions.InvalidOptionError as e:
         err(e.strerror)
         return e.errno
-
-    # open file
-    try:
-        nbtfile = read_file(options, args)
     except IOError as e:
         err(e.strerror)
         return e.errno
