@@ -1,7 +1,7 @@
 A command-line NBT editor.
 
-WARNING: This is experimental software. Expect breakages until this notice is
-removed.
+WARNING: This is unmaintained software. If you're looking for an up-to-date
+NBT editor, I recommend nbted: https://github.com/C4K3/nbted
 
 Overview
 --------
